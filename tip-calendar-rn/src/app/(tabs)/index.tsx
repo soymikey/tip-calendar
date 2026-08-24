@@ -16,10 +16,17 @@ export default function CalendarScreen() {
     defaultSelectedDate(now.getFullYear(), now.getMonth() + 1, now),
   )
 
+  const [showEmptyHint, setShowEmptyHint] = useState(true)
+
   function changeMonth(nextYear: number, nextMonth: number) {
     setYear(nextYear)
     setMonth(nextMonth)
     setSelectedLocalDate(defaultSelectedDate(nextYear, nextMonth))
+  }
+
+  function selectDate(localDate: string) {
+    setShowEmptyHint(false)
+    setSelectedLocalDate(localDate)
   }
 
   return (
@@ -32,8 +39,10 @@ export default function CalendarScreen() {
         year={year}
         month={month}
         selectedLocalDate={selectedLocalDate}
-        faded
-        overlay={<EmptyShiftOverlay />}
+        faded={showEmptyHint}
+        overlay={
+          showEmptyHint ? <EmptyShiftOverlay onDismiss={() => setShowEmptyHint(false)} /> : null
+        }
         belowHeader={
           <View className="flex-row gap-2 px-5 py-1">
             {SUMMARY_CARDS.map((label) => (
@@ -47,7 +56,7 @@ export default function CalendarScreen() {
             ))}
           </View>
         }
-        onSelectDate={setSelectedLocalDate}
+        onSelectDate={selectDate}
         onChangeMonth={changeMonth}
       />
     </SafeAreaView>

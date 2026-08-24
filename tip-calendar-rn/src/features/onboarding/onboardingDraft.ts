@@ -16,9 +16,8 @@ export type OnboardingAction =
   | { type: "next" }
   | { type: "back" }
   | { type: "setPay"; payType: PayType; payAmountCents: number }
-  | { type: "skipPay" }
   | { type: "setTipOut"; rule: TipOutRule }
-  | { type: "skipTipOut" }
+  | { type: "skip" }
 
 export function reduceOnboarding(
   draft: OnboardingDraft | undefined,
@@ -45,12 +44,10 @@ export function reduceOnboarding(
       return { ...current, step: current.step === 1 ? 1 : ((current.step - 1) as OnboardingStep) }
     case "setPay":
       return { ...current, payType: action.payType, payAmountCents: action.payAmountCents }
-    case "skipPay":
-      return { ...current, payType: "none", payAmountCents: 0, step: 3 }
     case "setTipOut":
       return { ...current, tipOutRule: action.rule }
-    case "skipTipOut":
-      return { ...current, tipOutRule: { type: "none" } }
+    case "skip":
+      return { ...current, name: current.name.trim() || "My Restaurant" }
   }
 }
 
@@ -75,7 +72,7 @@ export function canContinueStep(draft: OnboardingDraft): boolean {
 
 export function completeOnboarding(draft: OnboardingDraft, now: string): Restaurant {
   return createRestaurant({
-    name: draft.name,
+    name: draft.name.trim() || "My Restaurant",
     isDefault: true,
     payType: draft.payType,
     payAmountCents: draft.payAmountCents,

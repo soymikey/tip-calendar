@@ -3,22 +3,45 @@ import { canContinueStep, completeOnboarding, reduceOnboarding } from "./onboard
 const start = reduceOnboarding(undefined, { type: "init" })
 
 describe("onboardingDraft", () => {
-  it("blocks step 1 without a trimmed name", () => {
+  it("blocks step 1 Next without a trimmed name", () => {
     expect(canContinueStep(start)).toBe(false)
     const named = reduceOnboarding(start, { type: "setName", name: "  Bluebird  " })
     expect(canContinueStep(named)).toBe(true)
   })
 
-  it("keeps skipped pay and tip-out as unset", () => {
-    let draft = reduceOnboarding(start, { type: "setName", name: "Bluebird" })
+  it("skips from any step straight to a saved restaurant", () => {
+    const fromStep1 = completeOnboarding(
+      reduceOnboarding(start, { type: "skip" }),
+      "2026-08-21T20:00:00.000Z",
+    )
+    expect(fromStep1.name).toBe("My Restaurant")
+    expect(fromStep1.payType).toBe("none")
+    expect(fromStep1.defaultTipOutRule).toEqual({ type: "none" })
+
+    let named = reduceOnboarding(start, { type: "setName", name: "Bluebird" })
+    named = reduceOnboarding(named, { type: "next" })
+    const fromStep2 = completeOnboarding(
+      reduceOnboarding(named, { type: "skip" }),
+      "2026-08-21T20:00:00.000Z",
+    )
+    expect(fromStep2.name).toBe("Bluebird")
+    expect(fromStep2.payType).toBe("none")
+  })
+
+  it("keeps already entered pay when skipping later", () => {
+    let draft = reduceOnboarding(start, { type: "setName", name: "Harbor" })
     draft = reduceOnboarding(draft, { type: "next" })
-    draft = reduceOnboarding(draft, { type: "skipPay" })
-    draft = reduceOnboarding(draft, { type: "skipTipOut" })
-    const restaurant = completeOnboarding(draft, "2026-08-21T20:00:00.000Z")
-    expect(restaurant.name).toBe("Bluebird")
-    expect(restaurant.isDefault).toBe(true)
-    expect(restaurant.payType).toBe("none")
-    expect(restaurant.payAmountCents).toBe(0)
+    draft = reduceOnboarding(draft, {
+      type: "setPay",
+      payType: "hourly",
+      payAmountCents: 1800,
+    })
+    const restaurant = completeOnboarding(
+      reduceOnboarding(draft, { type: "skip" }),
+      "2026-08-21T20:00:00.000Z",
+    )
+    expect(restaurant.payType).toBe("hourly")
+    expect(restaurant.payAmountCents).toBe(1800)
     expect(restaurant.defaultTipOutRule).toEqual({ type: "none" })
   })
 

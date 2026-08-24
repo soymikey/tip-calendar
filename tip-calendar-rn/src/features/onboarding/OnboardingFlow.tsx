@@ -75,11 +75,7 @@ export function OnboardingFlow() {
     if (saving) {
       return
     }
-    if (draft.step === 2) {
-      dispatch({ type: "skipPay" })
-      return
-    }
-    const next = reduceOnboarding(draft, { type: "skipTipOut" })
+    const next = reduceOnboarding(draft, { type: "skip" })
     setDraft(next)
     await saveRestaurant(next)
   }
@@ -151,19 +147,17 @@ export function OnboardingFlow() {
               void onPrimary()
             }}
           />
-          {draft.step > 1 ? (
-            <Pressable
-              accessibilityRole="button"
-              className="min-h-[44px] items-center justify-center"
-              disabled={saving}
-              onPress={() => {
-                void onSkip()
-              }}>
-              <Text className="text-center text-[15px] font-medium" style={{ color: colors.action }}>
-                Skip for now
-              </Text>
-            </Pressable>
-          ) : null}
+          <Pressable
+            accessibilityRole="button"
+            className="min-h-[44px] items-center justify-center"
+            disabled={saving}
+            onPress={() => {
+              void onSkip()
+            }}>
+            <Text className="text-center text-[15px] font-medium" style={{ color: colors.action }}>
+              Skip for now
+            </Text>
+          </Pressable>
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
