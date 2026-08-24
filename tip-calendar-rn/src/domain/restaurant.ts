@@ -12,6 +12,12 @@ export type CreditCardTipPayout = "same_day" | "paycheck"
 
 export type ShiftTag = "lunch" | "dinner"
 
+export type Preferences = {
+  weekStartsOn: 0 | 1 | 2 | 3 | 4 | 5 | 6
+  currencySymbol: string
+  timeFormat: "12h" | "24h"
+}
+
 export type Restaurant = {
   id: string
   name: string
