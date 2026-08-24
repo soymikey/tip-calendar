@@ -31,7 +31,7 @@ describe("summarizeCalendar", () => {
         shift("2026-07-31", 5000),
       ],
       restaurants: [restaurant],
-      today: "2026-08-21",
+      weekAnchor: "2026-08-21",
       year: 2026,
       month: 8,
       weekStartsOn: 0,
@@ -40,5 +40,18 @@ describe("summarizeCalendar", () => {
     expect(summary.weekCents).toBe(30700)
     expect(summary.monthCents).toBe(30700)
     expect(summary.hourlyCents).toBe(Math.round(30700 / 11.5))
+  })
+
+  it("uses the selected date's week when browsing another month", () => {
+    const summary = summarizeCalendar({
+      shifts: [shift("2026-08-16", 10000), shift("2026-09-02", 8000)],
+      restaurants: [restaurant],
+      weekAnchor: "2026-09-01",
+      year: 2026,
+      month: 9,
+      weekStartsOn: 0,
+    })
+    expect(summary.weekCents).toBe(8000)
+    expect(summary.monthCents).toBe(8000)
   })
 })

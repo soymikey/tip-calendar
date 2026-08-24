@@ -34,3 +34,69 @@ export function toShift(draft: ShiftDraft, restaurant: Restaurant, now: string):
     now,
   })
 }
+
+export function fromShift(shift: Shift): ShiftDraft {
+  return {
+    localDate: shift.localDate,
+    restaurantId: shift.restaurantId,
+    hours: shift.hours,
+    cashTipsCents: shift.cashTipsCents,
+    cardTipsCents: shift.cardTipsCents,
+  }
+}
+
+export function toUpdatedShift(
+  draft: ShiftDraft,
+  restaurant: Restaurant,
+  existing: Shift,
+  now: string,
+): Shift {
+  const income = calculateShiftIncome({
+    restaurant,
+    hours: draft.hours,
+    unpaidBreakHours: existing.unpaidBreakHours,
+    cashTipsCents: draft.cashTipsCents,
+    cardTipsCents: draft.cardTipsCents,
+    otherIncomeCents: existing.otherIncomeCents,
+    salesCents: existing.salesCents,
+    tipOutOverride: existing.tipOutSnapshot.rule,
+  })
+  return {
+    ...existing,
+    hours: draft.hours,
+    cashTipsCents: draft.cashTipsCents,
+    cardTipsCents: draft.cardTipsCents,
+    tipOutSnapshot: income.tipOutSnapshot,
+    updatedAt: now,
+  }
+}
+
+export function shiftsOnDate(shifts: Shift[], localDate: string): Shift[] {
+  return shifts.filter((shift) => shift.localDate === localDate)
+}
+
+export function replaceShift(shifts: Shift[], next: Shift): Shift[] {
+  return shifts.map((shift) => (shift.id === next.id ? next : shift))
+}
+
+export function removeShift(
+  shifts: Shift[],
+  id: string,
+): { remaining: Shift[]; removed: Shift | undefined; index: number } {
+  const index = shifts.findIndex((shift) => shift.id === id)
+  if (index < 0) {
+    return { remaining: shifts, removed: undefined, index: -1 }
+  }
+  return {
+    remaining: shifts.filter((shift) => shift.id !== id),
+    removed: shifts[index],
+    index,
+  }
+}
+
+export function insertShiftAt(shifts: Shift[], shift: Shift, index: number): Shift[] {
+  const next = [...shifts]
+  const clamped = Math.max(0, Math.min(index, next.length))
+  next.splice(clamped, 0, shift)
+  return next
+}

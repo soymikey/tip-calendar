@@ -31,6 +31,7 @@ function RootStack() {
       <Stack.Screen name="(tabs)" />
       <Stack.Screen name="onboarding/index" />
       <Stack.Screen name="shift/new" />
+      <Stack.Screen name="shift/[id]" />
     </Stack>
   )
 }

@@ -5,7 +5,7 @@ import { SafeAreaView } from "react-native-safe-area-context"
 import { PrimaryButton } from "@/components/PrimaryButton"
 import { TextField } from "@/components/TextField"
 import { parseLocalDate } from "@/domain/calendar"
-import { dollarsToCents, formatUsd } from "@/domain/money"
+import { centsToDollars, dollarsToCents, formatUsd } from "@/domain/money"
 import type { Restaurant } from "@/domain/restaurant"
 import { colors } from "@/theme/colors"
 
@@ -14,17 +14,27 @@ import { canSaveShift, previewShiftIncome, type ShiftDraft } from "./shiftDraft"
 type RecordShiftFormProps = {
   localDate: string
   restaurant: Restaurant
+  mode?: "create" | "edit"
+  initialDraft?: ShiftDraft
   saving?: boolean
   onCancel: () => void
   onSave: (draft: ShiftDraft) => Promise<void>
 }
 
-function formatShiftDateTitle(localDate: string): string {
+function formatShiftDateTitle(localDate: string, weekday: "short" | "long"): string {
   return parseLocalDate(localDate).toLocaleDateString("en-US", {
-    weekday: "short",
+    weekday,
     month: "long",
     day: "numeric",
   })
+}
+
+function hoursToField(hours: number): string {
+  return hours > 0 ? String(hours) : ""
+}
+
+function centsToField(cents: number): string {
+  return cents > 0 ? String(centsToDollars(cents)) : ""
 }
 
 function parseHours(value: string): number {
@@ -47,13 +57,16 @@ function parseMoney(value: string): number {
 export function RecordShiftForm({
   localDate,
   restaurant,
+  mode = "create",
+  initialDraft,
   saving = false,
   onCancel,
   onSave,
 }: RecordShiftFormProps) {
-  const [hoursText, setHoursText] = useState("")
-  const [cashText, setCashText] = useState("")
-  const [cardText, setCardText] = useState("")
+  const [hoursText, setHoursText] = useState(() => hoursToField(initialDraft?.hours ?? 0))
+  const [cashText, setCashText] = useState(() => centsToField(initialDraft?.cashTipsCents ?? 0))
+  const [cardText, setCardText] = useState(() => centsToField(initialDraft?.cardTipsCents ?? 0))
+  const isEdit = mode === "edit"
 
   const draft: ShiftDraft = {
     localDate,
@@ -79,15 +92,22 @@ export function RecordShiftForm({
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Cancel"
-            className="min-h-[44px] justify-center"
+            className="min-h-[44px] w-[52px] justify-center"
             onPress={onCancel}>
             <Text className="text-[16px] font-medium" style={{ color: colors.action }}>
               Cancel
             </Text>
           </Pressable>
-          <Text className="flex-1 text-center text-[17px] font-semibold text-[#1C1C1E]">
-            {formatShiftDateTitle(localDate)}
-          </Text>
+          <View className="flex-1 items-center">
+            <Text className="text-center text-[17px] font-semibold text-[#1C1C1E]">
+              {isEdit ? "Edit Shift" : formatShiftDateTitle(localDate, "short")}
+            </Text>
+            {isEdit ? (
+              <Text className="text-center text-[13px] text-[#8E8E93]">
+                {formatShiftDateTitle(localDate, "long")}
+              </Text>
+            ) : null}
+          </View>
           <View className="w-[52px]" />
         </View>
 
@@ -157,7 +177,7 @@ export function RecordShiftForm({
 
         <View className="px-5 pb-2 pt-3">
           <PrimaryButton
-            label="Save Shift"
+            label={isEdit ? "Save Changes" : "Save Shift"}
             disabled={!canSave}
             onPress={() => {
               void onSave(draft)
