@@ -1,3 +1,4 @@
+import { parseLocalDate } from "./calendar"
 import type { Cents } from "./money"
 import { addCents } from "./money"
 import type { Restaurant, ShiftTag, TipOutRule } from "./restaurant"
@@ -29,6 +30,44 @@ export type Shift = {
 }
 
 export type ManualTipOut = { type: "manual"; amountCents: Cents }
+
+export function createShift(input: {
+  localDate: string
+  restaurantId: string
+  hours: number
+  unpaidBreakHours?: number
+  overnight?: boolean
+  cashTipsCents?: Cents
+  cardTipsCents?: Cents
+  otherIncomeCents?: Cents
+  salesCents?: Cents
+  tipOutSnapshot: TipOutSnapshot
+  note?: string
+  now?: string
+  id?: string
+}): Shift {
+  parseLocalDate(input.localDate)
+  if (!Number.isFinite(input.hours) || input.hours < 0) {
+    throw new Error("Hours must be a finite number")
+  }
+  const now = input.now ?? new Date().toISOString()
+  return {
+    id: input.id ?? `sft_${now}`,
+    localDate: input.localDate,
+    restaurantId: input.restaurantId,
+    hours: input.hours,
+    unpaidBreakHours: input.unpaidBreakHours ?? 0,
+    overnight: input.overnight ?? false,
+    cashTipsCents: input.cashTipsCents ?? 0,
+    cardTipsCents: input.cardTipsCents ?? 0,
+    otherIncomeCents: input.otherIncomeCents ?? 0,
+    salesCents: input.salesCents,
+    tipOutSnapshot: input.tipOutSnapshot,
+    note: input.note,
+    createdAt: now,
+    updatedAt: now,
+  }
+}
 
 export type ShiftIncomeInput = {
   restaurant: Restaurant

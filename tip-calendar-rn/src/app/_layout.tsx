@@ -30,6 +30,7 @@ function RootStack() {
       initialRouteName={needsOnboarding(state) ? "onboarding/index" : "(tabs)"}>
       <Stack.Screen name="(tabs)" />
       <Stack.Screen name="onboarding/index" />
+      <Stack.Screen name="shift/new" />
     </Stack>
   )
 }

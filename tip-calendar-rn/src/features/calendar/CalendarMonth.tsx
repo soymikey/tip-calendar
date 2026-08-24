@@ -3,6 +3,7 @@ import { Pressable, Text, View } from "react-native"
 import { SymbolView } from "expo-symbols"
 
 import { buildMonthGrid, toLocalDate, type LocalDate } from "@/domain/calendar"
+import { formatUsd } from "@/domain/money"
 import { colors } from "@/theme/colors"
 
 const WEEKDAYS = ["S", "M", "T", "W", "T", "F", "S"] as const
@@ -11,6 +12,7 @@ type CalendarMonthProps = {
   year: number
   month: number
   selectedLocalDate: LocalDate
+  amountsByDate?: Map<LocalDate, number>
   faded?: boolean
   belowHeader?: ReactNode
   overlay?: ReactNode
@@ -41,6 +43,7 @@ export function CalendarMonth({
   year,
   month,
   selectedLocalDate,
+  amountsByDate,
   faded = false,
   belowHeader,
   overlay,
@@ -105,19 +108,30 @@ export function CalendarMonth({
                     return <View key={`empty-${rowIndex}-${cellIndex}`} className="h-[52px] flex-1" />
                   }
                   const selected = cell.localDate === selectedLocalDate
+                  const amount = amountsByDate?.get(cell.localDate)
                   return (
                     <Pressable
                       key={cell.localDate}
                       accessibilityRole="button"
                       accessibilityLabel={cell.localDate}
-                      className="h-[52px] flex-1 items-center justify-center rounded-lg py-1.5"
+                      className="h-[52px] flex-1 items-center justify-center gap-0.5 rounded-lg py-1.5"
                       style={selected ? { backgroundColor: colors.action } : undefined}
                       onPress={() => onSelectDate(cell.localDate)}>
                       <Text
                         className="text-[14px] font-medium"
-                        style={{ color: selected ? "#FFFFFF" : "#1C1C1E" }}>
+                        style={{
+                          color: selected ? "#FFFFFF" : "#1C1C1E",
+                          fontWeight: selected ? "700" : "500",
+                        }}>
                         {cell.day}
                       </Text>
+                      {amount !== undefined ? (
+                        <Text
+                          className="text-[11px] font-semibold"
+                          style={{ color: selected ? "#FFFFFF" : colors.income }}>
+                          {formatUsd(amount, { compact: true })}
+                        </Text>
+                      ) : null}
                     </Pressable>
                   )
                 })}
