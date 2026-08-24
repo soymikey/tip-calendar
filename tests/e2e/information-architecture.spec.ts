@@ -104,6 +104,27 @@ test("recorded calendar dates open a modal Day Details sheet that can close", as
   await expect(daySheet).toBeFocused();
   await expect(page.getByTestId("day-detail-scrim")).toBeVisible();
   await expect(page.locator(".sheet-handle")).toBeVisible();
+  const sheetLayout = await daySheet.evaluate((node) => {
+    const sheet = node as HTMLElement;
+    const handle = sheet.querySelector<HTMLElement>(".sheet-handle");
+    const heading = sheet.querySelector<HTMLElement>(".day-sheet-heading");
+    const netSummary = sheet.querySelector<HTMLElement>(".day-net-summary");
+    const totals = sheet.querySelector<HTMLElement>(".day-totals");
+    const card = sheet.querySelector<HTMLElement>(".shift-card");
+    const cta = Array.from(sheet.querySelectorAll<HTMLButtonElement>("button")).find(
+      (button) => button.textContent?.trim() === "Record Shift",
+    );
+
+    return {
+      display: getComputedStyle(sheet).display,
+      totalsDisplay: totals ? getComputedStyle(totals).display : "",
+      rows: [handle, heading, netSummary, totals, card, cta].map((element) => element?.getBoundingClientRect().top ?? null),
+    };
+  });
+  expect(sheetLayout.display).toBe("flex");
+  expect(sheetLayout.totalsDisplay).toBe("flex");
+  expect(sheetLayout.rows.every((row): row is number => row !== null)).toBe(true);
+  expect(sheetLayout.rows).toEqual([...sheetLayout.rows].sort((a, b) => a - b));
   await expect(daySheet.getByText("Day net $80.00")).toBeVisible();
   await expect(daySheet.getByText("Net income $80.00")).toBeVisible();
   await expect(daySheet.getByRole("button", { name: /Edit shift/ })).toBeVisible();

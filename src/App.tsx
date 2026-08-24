@@ -436,8 +436,10 @@ export default function App() {
         >
           <div className="sheet-handle" aria-hidden="true" />
           <div className="day-sheet-heading">
-            <p data-testid="selected-date">{selectedDate}</p>
             <h2 id="day-detail-title">Day Details</h2>
+            <p data-testid="selected-date">{selectedDate}</p>
+          </div>
+          <div className="day-net-summary" aria-label="Day net income summary">
             <strong>{money(selectedSummary.netIncome)}</strong>
             <span>{selectedSummary.shiftCount} shifts</span>
           </div>
@@ -449,9 +451,6 @@ export default function App() {
             <p>Average actual hourly {selectedSummary.averageActualHourly === null ? "$0.00/hr" : `${money(selectedSummary.averageActualHourly)}/hr`}</p>
             <p>Total effective hours {selectedSummary.effectiveHours}</p>
           </div>
-          <button className="primary-button" type="button" onClick={() => startShiftForDate(selectedDate)}>
-            Record Shift
-          </button>
           {selectedShifts.map((shift) => {
             const itemCalculation = calculateShift({
               payType: payForShift(shift).payType,
@@ -487,6 +486,9 @@ export default function App() {
               </article>
             );
           })}
+          <button className="primary-button day-sheet-cta" type="button" onClick={() => startShiftForDate(selectedDate)}>
+            Record Shift
+          </button>
         </section>
         </>
       )}
