@@ -188,6 +188,8 @@ export function StatsScreen() {
             {cards.map((card) => (
               <View
                 key={card.label}
+                accessible
+                accessibilityLabel={`${card.label} ${card.value}`}
                 className="min-h-[72px] gap-0.5 rounded-xl px-3 py-3"
                 style={{
                   backgroundColor: colors.parchment,

@@ -4,6 +4,7 @@ import { SymbolView } from "expo-symbols"
 
 import { buildMonthGrid, weekdayLetters, toLocalDate, type LocalDate, type WeekStartsOn } from "@/domain/calendar"
 import { formatUsd } from "@/domain/money"
+import { calendarDayAccessibilityLabel } from "@/features/calendar/calendarA11y"
 import { colors } from "@/theme/colors"
 
 type CalendarMonthProps = {
@@ -114,7 +115,7 @@ export function CalendarMonth({
                     <Pressable
                       key={cell.localDate}
                       accessibilityRole="button"
-                      accessibilityLabel={cell.localDate}
+                      accessibilityLabel={calendarDayAccessibilityLabel(cell.localDate, amount)}
                       className="relative h-[52px] flex-1 items-center justify-center rounded-lg"
                       style={({ pressed }) => {
                         const confirmed = selected && pressed

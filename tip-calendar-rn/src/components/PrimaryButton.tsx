@@ -13,6 +13,7 @@ export function PrimaryButton({ label, disabled = false, onPress }: PrimaryButto
   return (
     <Pressable
       accessibilityRole="button"
+      accessibilityLabel={label}
       accessibilityState={{ disabled }}
       disabled={disabled}
       onPress={onPress}
