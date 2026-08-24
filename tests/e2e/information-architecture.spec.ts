@@ -1,18 +1,40 @@
 import { expect, test } from "@playwright/test";
 
-test("Calendar is the default home with only Calendar and Settings bottom tabs", async ({ page }) => {
+test("Calendar is the default home with only Calendar and My bottom tabs", async ({ page }) => {
   await page.goto("/");
 
   await expect(page.getByRole("navigation", { name: "Primary" })).toBeVisible();
   await expect(page.getByRole("tab", { name: "Calendar" })).toHaveAttribute("aria-selected", "true");
-  await expect(page.getByRole("tab", { name: "Settings" })).toHaveAttribute("aria-selected", "false");
+  await expect(page.getByRole("tab", { name: "My" })).toHaveAttribute("aria-selected", "false");
+  await expect(page.getByRole("tab", { name: "Settings" })).toHaveCount(0);
   await expect(page.getByRole("tab", { name: "Record Shift" })).toHaveCount(0);
   await expect(page.getByRole("tab", { name: "Calculator" })).toHaveCount(0);
 
   await expect(page.getByRole("heading", { name: /August 2026/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Previous month" })).toHaveText("");
+  await expect(page.getByRole("button", { name: "Next month" })).toHaveText("");
   await expect(page.getByRole("heading", { name: "Restaurant settings" })).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "Export and backup" })).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "Record Shift" })).toHaveCount(0);
+});
+
+test("Calendar home uses white canvas and Figma-style selected date treatment", async ({ page }) => {
+  await page.goto("/");
+
+  const bodyBackground = await page.locator("body").evaluate((node) => getComputedStyle(node).backgroundColor);
+  const appBackground = await page.locator("main").evaluate((node) => getComputedStyle(node).backgroundColor);
+  const selectedDay = page.locator(".calendar-day[aria-pressed='true']").first();
+  const selectedBackground = await selectedDay.evaluate((node) => getComputedStyle(node).backgroundColor);
+  const selectedColor = await selectedDay.evaluate((node) => getComputedStyle(node).color);
+  const defaultBorder = await page
+    .getByRole("button", { name: "Select 2026-08-10" })
+    .evaluate((node) => getComputedStyle(node).borderTopStyle);
+
+  expect(bodyBackground).toBe("rgb(255, 255, 255)");
+  expect(appBackground).toBe("rgba(0, 0, 0, 0)");
+  expect(selectedBackground).toBe("rgb(0, 102, 204)");
+  expect(selectedColor).toBe("rgb(255, 255, 255)");
+  expect(defaultBorder).toBe("none");
 });
 
 test("empty calendar dates open a new Record Shift form directly", async ({ page }) => {
@@ -63,12 +85,32 @@ test("recorded calendar dates open the Day Details sheet with edit and add actio
   await expect(page.getByLabel("Cash tips")).toHaveValue("30");
 });
 
-test("Settings tab owns restaurants and data export", async ({ page }) => {
+test("My tab exposes separate settings, preferences, backup, and privacy views", async ({ page }) => {
   await page.goto("/");
 
-  await page.getByRole("tab", { name: "Settings" }).click();
-  await expect(page.getByRole("tab", { name: "Settings" })).toHaveAttribute("aria-selected", "true");
-  await expect(page.getByRole("heading", { name: "Restaurant settings" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Export and backup" })).toBeVisible();
+  await page.getByRole("tab", { name: "My" }).click();
+  await expect(page.getByRole("tab", { name: "My" })).toHaveAttribute("aria-selected", "true");
+  await expect(page.getByRole("heading", { name: "My" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Restaurant settings" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Preferences" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Data & backup" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "About & privacy" })).toBeVisible();
   await expect(page.getByRole("heading", { name: /August 2026/ })).toHaveCount(0);
+
+  await page.getByRole("button", { name: "Restaurant settings" }).click();
+  await expect(page.getByRole("heading", { name: "Restaurant settings" })).toBeVisible();
+  await page.getByRole("button", { name: "Back to My" }).click();
+
+  await page.getByRole("button", { name: "Preferences" }).click();
+  await expect(page.getByRole("heading", { name: "Preferences" })).toBeVisible();
+  await expect(page.getByLabel("Week starts on")).toBeVisible();
+  await page.getByRole("button", { name: "Back to My" }).click();
+
+  await page.getByRole("button", { name: "Data & backup" }).click();
+  await expect(page.getByRole("heading", { name: "Export and backup" })).toBeVisible();
+  await page.getByRole("button", { name: "Back to My" }).click();
+
+  await page.getByRole("button", { name: "About & privacy" }).click();
+  await expect(page.getByRole("heading", { name: "About & privacy" })).toBeVisible();
+  await expect(page.getByText("Data stays in this browser.")).toBeVisible();
 });

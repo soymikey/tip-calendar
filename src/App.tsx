@@ -38,6 +38,7 @@ import {
 import { exportCsv, exportJsonBackup, importJsonBackup } from "./storage/backup";
 
 type SaveStatus = "idle" | "saved" | "reset" | "shiftSaved" | "shiftDeleted" | "shiftRestored";
+type MyView = "menu" | "restaurant" | "preferences" | "data" | "about";
 
 function parseAmount(value: string): number {
   return normalizePayAmount(Number(value));
@@ -68,8 +69,10 @@ export default function App() {
   const [deleteTarget, setDeleteTarget] = useState<ShiftRecord | null>(null);
   const [undoShift, setUndoShift] = useState<ShiftRecord | null>(null);
   const [selectedDate, setSelectedDate] = useState(draft.date);
-  const [activeTab, setActiveTab] = useState<"calendar" | "settings">("calendar");
+  const [activeTab, setActiveTab] = useState<"calendar" | "my">("calendar");
   const [screen, setScreen] = useState<"home" | "shift">("home");
+  const [myView, setMyView] = useState<MyView>("menu");
+  const [weekStart, setWeekStart] = useState(() => localStorage.getItem("tip-calendar-week-start") ?? "Sunday");
   const [exportOutput, setExportOutput] = useState("");
   const [importText, setImportText] = useState("");
   const [importConfirmed, setImportConfirmed] = useState(false);
@@ -259,6 +262,11 @@ export default function App() {
     setBackupMessage("JSON backup ready.");
   }
 
+  function updateWeekStart(value: string) {
+    setWeekStart(value);
+    localStorage.setItem("tip-calendar-week-start", value);
+  }
+
   function handleImportJson() {
     const result = importJsonBackup(importText, importConfirmed);
 
@@ -308,27 +316,31 @@ export default function App() {
 
   return (
     <main className="app-shell">
-      <section className="hero-panel" aria-labelledby="app-title">
-        <p className="eyebrow">Tip Calendar</p>
-        <h1 id="app-title">Tip Calendar</h1>
-        <p className="intro">
-          Keep defaults local, then record a single-restaurant shift without an account.
-        </p>
-      </section>
+      {!(screen === "home" && activeTab === "calendar") && (
+        <section className="hero-panel" aria-labelledby="app-title">
+          <p className="eyebrow">Tip Calendar</p>
+          <h1 id="app-title">Tip Calendar</h1>
+          <p className="intro">
+            Keep defaults local, then record a single-restaurant shift without an account.
+          </p>
+        </section>
+      )}
 
       {screen === "home" && activeTab === "calendar" && (
         <>
       <section className="settings-panel calendar-panel" aria-labelledby="calendar-title">
-        <div className="section-heading">
+        <div className="calendar-heading">
+          <button type="button" aria-label="Previous month" onClick={() => setSelectedDate(shiftMonth(selectedDate, -1))}>
+            <svg aria-hidden="true" viewBox="0 0 24 24">
+              <path d="M15 18 9 12l6-6" />
+            </svg>
+          </button>
           <h2 id="calendar-title">{formatMonth(selectedDate)}</h2>
-          <div className="month-actions">
-            <button type="button" onClick={() => setSelectedDate(shiftMonth(selectedDate, -1))}>
-              Previous month
-            </button>
-            <button type="button" onClick={() => setSelectedDate(shiftMonth(selectedDate, 1))}>
-              Next month
-            </button>
-          </div>
+          <button type="button" aria-label="Next month" onClick={() => setSelectedDate(shiftMonth(selectedDate, 1))}>
+            <svg aria-hidden="true" viewBox="0 0 24 24">
+              <path d="m9 18 6-6-6-6" />
+            </svg>
+          </button>
         </div>
 
         <div className="summary-strip" aria-label="Income summaries">
@@ -445,11 +457,44 @@ export default function App() {
         </>
       )}
 
-      {screen === "home" && activeTab === "settings" && (
+      {screen === "home" && activeTab === "my" && (
         <>
+      {myView === "menu" && (
+        <section className="settings-panel my-panel" aria-labelledby="my-title">
+          <div className="section-heading">
+            <h2 id="my-title">My</h2>
+            <p>Local profile</p>
+          </div>
+          <div className="my-list">
+            <button type="button" aria-label="Restaurant settings" onClick={() => setMyView("restaurant")}>
+              <span>Restaurant settings</span>
+              <small>{appState.restaurants.length} restaurants</small>
+            </button>
+            <button type="button" aria-label="Preferences" onClick={() => setMyView("preferences")}>
+              <span>Preferences</span>
+              <small>Week starts {weekStart}</small>
+            </button>
+            <button type="button" aria-label="Data & backup" onClick={() => setMyView("data")}>
+              <span>Data & backup</span>
+              <small>CSV and JSON</small>
+            </button>
+            <button type="button" aria-label="About & privacy" onClick={() => setMyView("about")}>
+              <span>About & privacy</span>
+              <small>Local-only data</small>
+            </button>
+          </div>
+        </section>
+      )}
+
+      {myView === "restaurant" && (
       <form className="settings-panel" onSubmit={saveSettings}>
         <div className="section-heading">
-          <h2>Restaurant settings</h2>
+          <div>
+            <button className="back-button" type="button" onClick={() => setMyView("menu")}>
+              Back to My
+            </button>
+            <h2>Restaurant settings</h2>
+          </div>
           <p>{paySummary}</p>
         </div>
 
@@ -603,10 +648,43 @@ export default function App() {
           {status === "reset" && "Demo data restored."}
         </div>
       </form>
+      )}
 
+      {myView === "preferences" && (
+        <section className="settings-panel" aria-labelledby="preferences-title">
+          <div className="section-heading">
+            <div>
+              <button className="back-button" type="button" onClick={() => setMyView("menu")}>
+                Back to My
+              </button>
+              <h2 id="preferences-title">Preferences</h2>
+            </div>
+            <p>Calendar</p>
+          </div>
+          <label className="field">
+            <span>Week starts on</span>
+            <select
+              aria-label="Week starts on"
+              value={weekStart}
+              onChange={(event) => updateWeekStart(event.target.value)}
+            >
+              <option>Sunday</option>
+              <option>Monday</option>
+            </select>
+          </label>
+          <p className="empty-state">Display preferences can be added here without changing the fast recording path.</p>
+        </section>
+      )}
+
+      {myView === "data" && (
       <section className="settings-panel backup-panel" aria-labelledby="backup-title">
         <div className="section-heading">
-          <h2 id="backup-title">Export and backup</h2>
+          <div>
+            <button className="back-button" type="button" onClick={() => setMyView("menu")}>
+              Back to My
+            </button>
+            <h2 id="backup-title">Export and backup</h2>
+          </div>
           <p>Local only</p>
         </div>
         <p className="empty-state">Net income is not the same as cash in hand.</p>
@@ -652,6 +730,23 @@ export default function App() {
           {backupMessage}
         </div>
       </section>
+      )}
+
+      {myView === "about" && (
+        <section className="settings-panel" aria-labelledby="about-title">
+          <div className="section-heading">
+            <div>
+              <button className="back-button" type="button" onClick={() => setMyView("menu")}>
+                Back to My
+              </button>
+              <h2 id="about-title">About & privacy</h2>
+            </div>
+            <p>Private by default</p>
+          </div>
+          <p className="empty-state">Data stays in this browser.</p>
+          <p className="empty-state">No account, cloud sync, ads, upgrades, notifications, themes, or help center are included in this H5.</p>
+        </section>
+      )}
         </>
       )}
 
@@ -932,14 +1027,19 @@ export default function App() {
         </button>
         <button
           role="tab"
-          aria-selected={activeTab === "settings" && screen === "home"}
+          aria-selected={activeTab === "my" && screen === "home"}
           type="button"
           onClick={() => {
             setScreen("home");
-            setActiveTab("settings");
+            setActiveTab("my");
+            setMyView("menu");
           }}
         >
-          Settings
+          <svg aria-hidden="true" className="tab-icon" viewBox="0 0 24 24">
+            <path d="M20 21a8 8 0 0 0-16 0" />
+            <circle cx="12" cy="8" r="4" />
+          </svg>
+          <span>My</span>
         </button>
       </nav>
 

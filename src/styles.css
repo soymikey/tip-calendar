@@ -1,6 +1,6 @@
 :root {
   color: #1d1d1f;
-  background: #f5f5f7;
+  background: #ffffff;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -15,7 +15,7 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-  background: #f5f5f7;
+  background: #ffffff;
 }
 
 button,
@@ -26,15 +26,15 @@ textarea {
 
 .app-shell {
   display: grid;
-  gap: 16px;
+  gap: 12px;
   width: min(100%, 430px);
   min-height: 100vh;
   margin: 0 auto;
-  padding: 18px 16px 92px;
+  padding: 8px 16px 92px;
 }
 
 .hero-panel {
-  padding: 10px 4px 2px;
+  padding: 2px 4px 0;
 }
 
 .eyebrow {
@@ -51,8 +51,8 @@ p {
 }
 
 h1 {
-  margin-bottom: 6px;
-  font-size: 28px;
+  margin-bottom: 2px;
+  font-size: 24px;
   line-height: 1.12;
   letter-spacing: 0;
 }
@@ -61,7 +61,7 @@ h1 {
   margin-bottom: 0;
   max-width: 34ch;
   color: #515154;
-  font-size: 15px;
+  font-size: 13px;
   line-height: 1.45;
 }
 
@@ -80,22 +80,52 @@ h1 {
 }
 
 .calendar-panel {
-  gap: 14px;
+  gap: 12px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
 }
 
-.month-actions {
-  display: flex;
-  gap: 8px;
+.calendar-heading {
+  display: grid;
+  grid-template-columns: 44px 1fr 44px;
+  align-items: center;
+  min-height: 44px;
 }
 
-.month-actions button {
-  min-height: 34px;
-  border: 1px solid #d2d2d7;
+.calendar-heading h2 {
+  margin: 0;
+  text-align: center;
+  font-size: 20px;
+  line-height: 1.2;
+}
+
+.calendar-heading button {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 0;
   border-radius: 999px;
   background: #ffffff;
   color: #0066cc;
-  padding: 6px 10px;
-  font-size: 12px;
+  padding: 0;
+}
+
+.calendar-heading button:last-child {
+  justify-self: end;
+}
+
+.calendar-heading svg,
+.tab-icon {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .summary-strip {
@@ -130,28 +160,36 @@ h1 {
 .calendar-grid {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 5px;
+  gap: 4px;
 }
 
 .weekday-grid span {
   text-align: center;
+  font-weight: 600;
 }
 
 .calendar-day {
   display: grid;
-  align-content: start;
+  align-content: center;
+  justify-items: center;
   gap: 2px;
-  min-height: 52px;
-  border: 1px solid #e5e5ea;
-  border-radius: 8px;
+  min-height: 50px;
+  border: 0;
+  border-radius: 14px;
   background: #ffffff;
   color: #1d1d1f;
-  padding: 6px 3px;
+  padding: 6px 2px;
   cursor: pointer;
 }
 
 .calendar-day span {
-  font-size: 13px;
+  display: grid;
+  place-items: center;
+  min-width: 28px;
+  min-height: 28px;
+  border-radius: 999px;
+  font-size: 15px;
+  line-height: 1;
 }
 
 .calendar-day small {
@@ -163,12 +201,16 @@ h1 {
 
 .outside-month {
   color: #86868b;
-  background: #fafafc;
+  background: #ffffff;
 }
 
 .selected-day {
-  border-color: #0066cc;
-  outline: 2px solid rgb(0 102 204 / 16%);
+  background: #0066cc;
+  color: #ffffff;
+}
+
+.selected-day small {
+  color: #ffffff;
 }
 
 .day-detail {
@@ -290,6 +332,10 @@ h1 {
 }
 
 .bottom-tabs button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   min-height: 44px;
   border: 0;
   border-radius: 999px;
@@ -301,6 +347,46 @@ h1 {
 .bottom-tabs button[aria-selected="true"] {
   background: #0066cc;
   color: #ffffff;
+}
+
+.my-list {
+  display: grid;
+  gap: 8px;
+}
+
+.my-list button {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: center;
+  min-height: 56px;
+  border: 0;
+  border-radius: 12px;
+  background: #f5f5f7;
+  color: #1d1d1f;
+  padding: 12px 14px;
+  text-align: left;
+}
+
+.my-list span {
+  font-weight: 600;
+}
+
+.my-list small {
+  color: #515154;
+  font-size: 12px;
+}
+
+.back-button {
+  min-height: 32px;
+  margin-bottom: 8px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #0066cc;
+  padding: 0;
+  font-size: 14px;
+  font-weight: 600;
 }
 
 .restaurant-list {

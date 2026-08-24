@@ -3,7 +3,8 @@ import { expect, test } from "@playwright/test";
 test("mobile user can add a restaurant and save a shift with automatic tip-out snapshot", async ({ page }) => {
   await page.goto("/");
 
-  await page.getByRole("tab", { name: "Settings" }).click();
+  await page.getByRole("tab", { name: "My" }).click();
+  await page.getByRole("button", { name: "Restaurant settings" }).click();
   await page.getByRole("button", { name: "Add restaurant" }).click();
   await page.getByLabel("Restaurant name").fill("Blue Plate Diner");
   await page.getByLabel("Fixed pay per shift").check();
@@ -35,7 +36,8 @@ test("mobile user can add a restaurant and save a shift with automatic tip-out s
 test("mobile user can use sales percent tip-out only when sales amount is needed", async ({ page }) => {
   await page.goto("/");
 
-  await page.getByRole("tab", { name: "Settings" }).click();
+  await page.getByRole("tab", { name: "My" }).click();
+  await page.getByRole("button", { name: "Restaurant settings" }).click();
   await page.getByLabel("Default tip-out rule").selectOption("salesPercent");
   await page.getByLabel("Tip-out percent").fill("3");
   await page.getByRole("button", { name: "Save restaurant" }).click();

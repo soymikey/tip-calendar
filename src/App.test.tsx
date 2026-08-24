@@ -14,7 +14,8 @@ describe("App", () => {
     const user = userEvent.setup();
     render(<App />);
 
-    await user.click(screen.getByRole("tab", { name: "Settings" }));
+    await user.click(screen.getByRole("tab", { name: "My" }));
+    await user.click(screen.getByRole("button", { name: "Restaurant settings" }));
     await user.clear(screen.getByLabelText("Restaurant name"));
     await user.type(screen.getByLabelText("Restaurant name"), "Blue Plate Diner");
     await user.click(screen.getByLabelText("Fixed pay per shift"));
@@ -34,7 +35,8 @@ describe("App", () => {
     const user = userEvent.setup();
     render(<App />);
 
-    await user.click(screen.getByRole("tab", { name: "Settings" }));
+    await user.click(screen.getByRole("tab", { name: "My" }));
+    await user.click(screen.getByRole("button", { name: "Restaurant settings" }));
     await user.clear(screen.getByLabelText("Restaurant name"));
     await user.type(screen.getByLabelText("Restaurant name"), "Changed");
     await user.click(screen.getByRole("button", { name: "Save restaurant" }));
