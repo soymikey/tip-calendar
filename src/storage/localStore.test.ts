@@ -6,6 +6,9 @@ import {
   saveAppState,
   saveShift,
   deleteShift,
+  saveRestaurant,
+  deleteRestaurant,
+  setDefaultRestaurant,
   restoreShift,
   storageKey,
 } from "./localStore";
@@ -58,17 +61,21 @@ describe("local app storage", () => {
     localStorage.setItem(storageKey, JSON.stringify({ ...demoState, shifts: undefined }));
 
     expect(loadAppState().shifts).toEqual([]);
+    expect(loadAppState().restaurants).toHaveLength(1);
   });
 
   it("creates, edits, deletes, and restores shifts in local storage", () => {
     const created = saveShift({
       date: "2026-08-24",
+      restaurantId: "default",
       hours: 5,
       unpaidBreak: 0,
       cashTips: 30,
       creditTips: 120,
       otherIncome: 0,
       manualTipOut: 15,
+      salesAmount: 0,
+      tipOutRuleSnapshot: { type: "none" },
       notes: "",
     });
 
@@ -83,5 +90,26 @@ describe("local app storage", () => {
 
     restoreShift(deleted!);
     expect(loadAppState().shifts[0].id).toBe(edited.id);
+  });
+
+  it("creates, edits, deletes, and marks default restaurants", () => {
+    const created = saveRestaurant({
+      name: "Blue Plate Diner",
+      payType: "fixedShift",
+      payAmount: 90,
+      creditTipPayout: "paycheck",
+      defaultTipOut: { type: "tipsPercent", percent: 8 },
+    });
+
+    expect(loadAppState().restaurants).toHaveLength(2);
+
+    setDefaultRestaurant(created.id);
+    expect(loadAppState().defaultRestaurantId).toBe(created.id);
+
+    saveRestaurant({ ...created, payAmount: 95 });
+    expect(loadAppState().restaurants.find((restaurant) => restaurant.id === created.id)?.payAmount).toBe(95);
+
+    expect(deleteRestaurant(created.id)).toBe(true);
+    expect(loadAppState().restaurants).toHaveLength(1);
   });
 });

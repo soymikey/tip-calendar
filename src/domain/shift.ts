@@ -1,8 +1,9 @@
-import type { PayType } from "./restaurant";
+import type { PayType, TipOutRule } from "./restaurant";
 
 export type ShiftRecord = {
   id: string;
   date: string;
+  restaurantId: string;
   hours: number;
   useClock?: boolean;
   clockIn?: string;
@@ -12,6 +13,8 @@ export type ShiftRecord = {
   creditTips: number;
   otherIncome: number;
   manualTipOut: number;
+  salesAmount: number;
+  tipOutRuleSnapshot: TipOutRule;
   notes: string;
   createdAt: string;
   updatedAt: string;
@@ -29,6 +32,8 @@ export type ShiftInput = {
   creditTips: number;
   otherIncome: number;
   manualTipOut: number;
+  salesAmount?: number;
+  tipOutRule?: TipOutRule;
 };
 
 export type ShiftDraft = Omit<ShiftRecord, "id" | "createdAt" | "updatedAt"> & {
@@ -46,6 +51,7 @@ export type ShiftCalculation = {
   netIncome: number;
   actualHourly: number | null;
   isCrossMidnight: boolean;
+  tipOut: number;
 };
 
 function roundMoney(value: number): number {
@@ -99,7 +105,8 @@ export function calculateShift(input: ShiftInput): ShiftCalculation {
   const wageIncome =
     input.payType === "hourly" ? roundMoney(input.payAmount * effectiveHours) : roundMoney(input.payAmount);
   const totalIncome = roundMoney(totalTips + wageIncome + input.otherIncome);
-  const netIncome = roundMoney(totalIncome - input.manualTipOut);
+  const tipOut = calculateTipOut(input.tipOutRule, totalTips, input.salesAmount ?? 0, input.manualTipOut);
+  const netIncome = roundMoney(totalIncome - tipOut);
 
   return {
     rawHours: clock.rawHours,
@@ -110,7 +117,33 @@ export function calculateShift(input: ShiftInput): ShiftCalculation {
     netIncome,
     actualHourly: effectiveHours > 0 ? roundMoney(netIncome / effectiveHours) : null,
     isCrossMidnight: clock.isCrossMidnight,
+    tipOut,
   };
+}
+
+export function calculateTipOut(
+  rule: TipOutRule | undefined,
+  totalTips: number,
+  salesAmount: number,
+  manualTipOut: number,
+): number {
+  if (manualTipOut > 0) {
+    return roundMoney(manualTipOut);
+  }
+
+  if (!rule || rule.type === "none") {
+    return 0;
+  }
+
+  if (rule.type === "fixed") {
+    return roundMoney(rule.amount);
+  }
+
+  if (rule.type === "salesPercent") {
+    return roundMoney(salesAmount * (rule.percent / 100));
+  }
+
+  return roundMoney(totalTips * (rule.percent / 100));
 }
 
 export function validateShiftInput(input: ShiftInput): string[] {
@@ -137,7 +170,7 @@ export function validateShiftInput(input: ShiftInput): string[] {
     errors.push("Unpaid break must be shorter than work hours.");
   }
 
-  if (input.manualTipOut > calculation.totalIncome) {
+  if (calculation.tipOut > calculation.totalIncome) {
     errors.push("Tip-out cannot be higher than total income.");
   }
 
@@ -147,6 +180,7 @@ export function validateShiftInput(input: ShiftInput): string[] {
 export function createEmptyShiftDraft(date = new Date().toLocaleDateString("en-CA")): ShiftDraft {
   return {
     date,
+    restaurantId: "default",
     hours: 0,
     useClock: false,
     clockIn: "",
@@ -156,6 +190,8 @@ export function createEmptyShiftDraft(date = new Date().toLocaleDateString("en-C
     creditTips: 0,
     otherIncome: 0,
     manualTipOut: 0,
+    salesAmount: 0,
+    tipOutRuleSnapshot: { type: "none" },
     notes: "",
   };
 }
@@ -166,6 +202,7 @@ export function toShiftRecord(draft: ShiftDraft): ShiftRecord {
   return {
     id: draft.id ?? crypto.randomUUID(),
     date: draft.date,
+    restaurantId: draft.restaurantId || "default",
     hours: normalizeNumber(draft.hours),
     useClock: Boolean(draft.useClock),
     clockIn: draft.clockIn,
@@ -175,6 +212,8 @@ export function toShiftRecord(draft: ShiftDraft): ShiftRecord {
     creditTips: normalizeNumber(draft.creditTips),
     otherIncome: normalizeNumber(draft.otherIncome),
     manualTipOut: normalizeNumber(draft.manualTipOut),
+    salesAmount: normalizeNumber(draft.salesAmount),
+    tipOutRuleSnapshot: draft.tipOutRuleSnapshot,
     notes: draft.notes.trim(),
     createdAt: draft.createdAt ?? now,
     updatedAt: now,

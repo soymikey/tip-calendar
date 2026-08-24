@@ -41,6 +41,51 @@ describe("shift calculations", () => {
     expect(result.actualHourly).toBe(30);
   });
 
+  it("calculates automatic tip-out from fixed, sales percent, and total tips percent rules", () => {
+    expect(
+      calculateShift({
+        payType: "hourly",
+        payAmount: 10,
+        hours: 5,
+        unpaidBreak: 0,
+        cashTips: 40,
+        creditTips: 160,
+        otherIncome: 0,
+        manualTipOut: 0,
+        tipOutRule: { type: "tipsPercent", percent: 10 },
+      }).tipOut,
+    ).toBe(20);
+
+    expect(
+      calculateShift({
+        payType: "hourly",
+        payAmount: 10,
+        hours: 5,
+        unpaidBreak: 0,
+        cashTips: 40,
+        creditTips: 160,
+        otherIncome: 0,
+        manualTipOut: 0,
+        salesAmount: 900,
+        tipOutRule: { type: "salesPercent", percent: 3 },
+      }).tipOut,
+    ).toBe(27);
+
+    expect(
+      calculateShift({
+        payType: "hourly",
+        payAmount: 10,
+        hours: 5,
+        unpaidBreak: 0,
+        cashTips: 40,
+        creditTips: 160,
+        otherIncome: 0,
+        manualTipOut: 0,
+        tipOutRule: { type: "fixed", amount: 15 },
+      }).tipOut,
+    ).toBe(15);
+  });
+
   it("calculates cross-midnight clock in and out hours when more options are used", () => {
     const result = calculateShift({
       payType: "hourly",

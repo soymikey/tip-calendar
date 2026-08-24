@@ -9,7 +9,14 @@ import {
   summarizeShiftsByDate,
 } from "./domain/calendar";
 import type { AppState, PayType } from "./domain/restaurant";
-import { formatPaySummary, normalizePayAmount } from "./domain/restaurant";
+import type { CreditTipPayout, RestaurantSettings, TipOutRule } from "./domain/restaurant";
+import {
+  formatPaySummary,
+  normalizePayAmount,
+  normalizeTipOutRule,
+  restaurantDisplayName,
+  tipOutRuleLabel,
+} from "./domain/restaurant";
 import type { ShiftDraft, ShiftRecord } from "./domain/shift";
 import {
   calculateShift,
@@ -22,8 +29,10 @@ import {
   loadAppState,
   resetDemoData,
   restoreShift,
-  saveAppState,
+  saveRestaurant,
   saveShift,
+  setDefaultRestaurant,
+  deleteRestaurant,
 } from "./storage/localStore";
 
 type SaveStatus = "idle" | "saved" | "reset" | "shiftSaved" | "shiftDeleted" | "shiftRestored";
@@ -41,6 +50,15 @@ export default function App() {
   const [name, setName] = useState(appState.restaurant.name);
   const [payType, setPayType] = useState<PayType>(appState.restaurant.payType);
   const [payAmount, setPayAmount] = useState(String(appState.restaurant.payAmount));
+  const [editingRestaurantId, setEditingRestaurantId] = useState(appState.defaultRestaurantId);
+  const [creditTipPayout, setCreditTipPayout] = useState<CreditTipPayout>(appState.restaurant.creditTipPayout);
+  const [tipOutType, setTipOutType] = useState<TipOutRule["type"]>(appState.restaurant.defaultTipOut.type);
+  const [tipOutAmount, setTipOutAmount] = useState(
+    "amount" in appState.restaurant.defaultTipOut ? String(appState.restaurant.defaultTipOut.amount) : "",
+  );
+  const [tipOutPercent, setTipOutPercent] = useState(
+    "percent" in appState.restaurant.defaultTipOut ? String(appState.restaurant.defaultTipOut.percent) : "",
+  );
   const [status, setStatus] = useState<SaveStatus>("idle");
   const [draft, setDraft] = useState<ShiftDraft>(() => createEmptyShiftDraft());
   const [showMore, setShowMore] = useState(false);
@@ -49,10 +67,12 @@ export default function App() {
   const [undoShift, setUndoShift] = useState<ShiftRecord | null>(null);
   const [selectedDate, setSelectedDate] = useState(draft.date);
 
+  const selectedRestaurant =
+    appState.restaurants.find((restaurant) => restaurant.id === draft.restaurantId) ?? appState.restaurant;
   const currentRestaurant = {
-    ...appState.restaurant,
-    payType,
-    payAmount: parseAmount(payAmount),
+    ...selectedRestaurant,
+    payType: selectedRestaurant.payType,
+    payAmount: selectedRestaurant.payAmount,
   };
   const calculationInput = {
     payType: currentRestaurant.payType,
@@ -66,6 +86,8 @@ export default function App() {
     creditTips: draft.creditTips,
     otherIncome: draft.otherIncome,
     manualTipOut: draft.manualTipOut,
+    salesAmount: draft.salesAmount,
+    tipOutRule: draft.tipOutRuleSnapshot,
   };
   const calculation = calculateShift(calculationInput);
   const validationMessages = validateShiftInput(calculationInput);
@@ -74,12 +96,15 @@ export default function App() {
     () => formatPaySummary({ payType, payAmount: parseAmount(payAmount) }),
     [payAmount, payType],
   );
-  const paySettings = { payType: appState.restaurant.payType, payAmount: appState.restaurant.payAmount };
-  const dateSummaries = summarizeShiftsByDate(appState.shifts, paySettings);
+  const payForShift = (shift: ShiftRecord) => {
+    const restaurant = appState.restaurants.find((item) => item.id === shift.restaurantId) ?? appState.restaurant;
+    return { payType: restaurant.payType, payAmount: restaurant.payAmount };
+  };
+  const dateSummaries = summarizeShiftsByDate(appState.shifts, payForShift);
   const selectedShifts = appState.shifts.filter((shift) => shift.date === selectedDate);
-  const selectedSummary = summarizeShifts(selectedShifts, paySettings);
-  const weekSummary = summarizePeriod(appState.shifts, paySettings, selectedDate, "week");
-  const monthSummary = summarizePeriod(appState.shifts, paySettings, selectedDate, "month");
+  const selectedSummary = summarizeShifts(selectedShifts, payForShift);
+  const weekSummary = summarizePeriod(appState.shifts, payForShift, selectedDate, "week");
+  const monthSummary = summarizePeriod(appState.shifts, payForShift, selectedDate, "month");
   const monthDays = buildMonthDays(selectedDate);
 
   function refreshState() {
@@ -92,23 +117,38 @@ export default function App() {
     setDraft((current) => ({ ...current, ...updates }));
   }
 
+  function currentTipOutRule(): TipOutRule {
+    return normalizeTipOutRule({
+      type: tipOutType,
+      amount: parseAmount(tipOutAmount),
+      percent: parseAmount(tipOutPercent),
+    } as Partial<TipOutRule>);
+  }
+
+  function loadRestaurantIntoForm(restaurant: RestaurantSettings) {
+    setEditingRestaurantId(restaurant.id);
+    setName(restaurant.name);
+    setPayType(restaurant.payType);
+    setPayAmount(String(restaurant.payAmount));
+    setCreditTipPayout(restaurant.creditTipPayout);
+    setTipOutType(restaurant.defaultTipOut.type);
+    setTipOutAmount("amount" in restaurant.defaultTipOut ? String(restaurant.defaultTipOut.amount) : "");
+    setTipOutPercent("percent" in restaurant.defaultTipOut ? String(restaurant.defaultTipOut.percent) : "");
+  }
+
   function saveSettings(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-
-    const nextState = saveAppState({
-      ...appState,
-      restaurant: {
-        id: "default",
-        name: name.trim() || "Default Restaurant",
-        payType,
-        payAmount: parseAmount(payAmount),
-      },
+    const saved = saveRestaurant({
+      id: editingRestaurantId,
+      name: name.trim() || "Default Restaurant",
+      payType,
+      payAmount: parseAmount(payAmount),
+      creditTipPayout,
+      defaultTipOut: currentTipOutRule(),
     });
-
-    setAppState(nextState);
-    setName(nextState.restaurant.name);
-    setPayType(nextState.restaurant.payType);
-    setPayAmount(String(nextState.restaurant.payAmount));
+    setDefaultRestaurant(saved.id);
+    const nextState = refreshState();
+    loadRestaurantIntoForm(nextState.restaurants.find((restaurant) => restaurant.id === saved.id) ?? saved);
     setStatus("saved");
   }
 
@@ -118,6 +158,10 @@ export default function App() {
     setName(nextState.restaurant.name);
     setPayType(nextState.restaurant.payType);
     setPayAmount(String(nextState.restaurant.payAmount));
+    setCreditTipPayout(nextState.restaurant.creditTipPayout);
+    setTipOutType(nextState.restaurant.defaultTipOut.type);
+    setTipOutAmount("");
+    setTipOutPercent("");
     setDraft(createEmptyShiftDraft());
     setUndoShift(null);
     setDeleteTarget(null);
@@ -125,8 +169,13 @@ export default function App() {
   }
 
   function startShiftForDate(date: string) {
+    const restaurant = appState.restaurants.find((item) => item.id === appState.defaultRestaurantId) ?? appState.restaurant;
     setSelectedDate(date);
-    setDraft(createEmptyShiftDraft(date));
+    setDraft({
+      ...createEmptyShiftDraft(date),
+      restaurantId: restaurant.id,
+      tipOutRuleSnapshot: restaurant.defaultTipOut,
+    });
     setShowDetails(false);
     setShowMore(false);
     setStatus("idle");
@@ -139,7 +188,10 @@ export default function App() {
       return;
     }
 
-    saveShift(draft);
+    saveShift({
+      ...draft,
+      tipOutRuleSnapshot: normalizeTipOutRule(draft.tipOutRuleSnapshot),
+    });
     refreshState();
     setSelectedDate(draft.date);
     setDraft(createEmptyShiftDraft(draft.date));
@@ -153,6 +205,24 @@ export default function App() {
     setShowMore(Boolean(shift.useClock || shift.unpaidBreak || shift.notes));
     setShowDetails(false);
     setStatus("idle");
+  }
+
+  function handleAddRestaurant() {
+    setEditingRestaurantId("");
+    setName("");
+    setPayType("hourly");
+    setPayAmount("");
+    setCreditTipPayout("sameDay");
+    setTipOutType("none");
+    setTipOutAmount("");
+    setTipOutPercent("");
+    setStatus("idle");
+  }
+
+  function handleRestaurantDelete(id: string) {
+    deleteRestaurant(id);
+    const nextState = refreshState();
+    loadRestaurantIntoForm(nextState.restaurant);
   }
 
   function confirmDelete() {
@@ -280,8 +350,8 @@ export default function App() {
         </button>
         {selectedShifts.map((shift) => {
           const itemCalculation = calculateShift({
-            payType: appState.restaurant.payType,
-            payAmount: appState.restaurant.payAmount,
+            payType: payForShift(shift).payType,
+            payAmount: payForShift(shift).payAmount,
             hours: shift.hours,
             useClock: shift.useClock,
             clockIn: shift.clockIn,
@@ -291,6 +361,8 @@ export default function App() {
             creditTips: shift.creditTips,
             otherIncome: shift.otherIncome,
             manualTipOut: shift.manualTipOut,
+            salesAmount: shift.salesAmount,
+            tipOutRule: shift.tipOutRuleSnapshot,
           });
 
           return (
@@ -318,6 +390,29 @@ export default function App() {
           <h2>Restaurant settings</h2>
           <p>{paySummary}</p>
         </div>
+
+        <div className="restaurant-list">
+          {appState.restaurants.map((restaurant) => (
+            <div key={restaurant.id} className="restaurant-row">
+              <span>
+                {restaurantDisplayName({
+                  name: restaurant.name,
+                  isDefault: restaurant.id === appState.defaultRestaurantId,
+                })}
+              </span>
+              <button type="button" onClick={() => loadRestaurantIntoForm(restaurant)}>
+                Edit
+              </button>
+              <button type="button" onClick={() => handleRestaurantDelete(restaurant.id)}>
+                Delete
+              </button>
+            </div>
+          ))}
+        </div>
+
+        <button className="secondary-button" type="button" onClick={handleAddRestaurant}>
+          Add restaurant
+        </button>
 
         <label className="field">
           <span>Restaurant name</span>
@@ -369,9 +464,73 @@ export default function App() {
           </div>
         </label>
 
+        <fieldset className="segmented-field">
+          <legend>Credit card tips</legend>
+          <label className={creditTipPayout === "sameDay" ? "segment selected" : "segment"}>
+            <input
+              aria-label="Credit tips same day"
+              checked={creditTipPayout === "sameDay"}
+              name="creditTipPayout"
+              onChange={() => setCreditTipPayout("sameDay")}
+              type="radio"
+            />
+            Same day
+          </label>
+          <label className={creditTipPayout === "paycheck" ? "segment selected" : "segment"}>
+            <input
+              aria-label="Credit tips with paycheck"
+              checked={creditTipPayout === "paycheck"}
+              name="creditTipPayout"
+              onChange={() => setCreditTipPayout("paycheck")}
+              type="radio"
+            />
+            Paycheck
+          </label>
+        </fieldset>
+
+        <label className="field">
+          <span>Default tip-out rule</span>
+          <select
+            aria-label="Default tip-out rule"
+            value={tipOutType}
+            onChange={(event) => setTipOutType(event.target.value as TipOutRule["type"])}
+          >
+            <option value="none">No tip-out</option>
+            <option value="fixed">Fixed amount</option>
+            <option value="salesPercent">% of sales</option>
+            <option value="tipsPercent">% of total tips</option>
+          </select>
+        </label>
+
+        {tipOutType === "fixed" && (
+          <label className="field">
+            <span>Tip-out amount</span>
+            <input
+              aria-label="Tip-out amount"
+              inputMode="decimal"
+              type="number"
+              value={tipOutAmount}
+              onChange={(event) => setTipOutAmount(event.target.value)}
+            />
+          </label>
+        )}
+
+        {(tipOutType === "salesPercent" || tipOutType === "tipsPercent") && (
+          <label className="field">
+            <span>Tip-out percent</span>
+            <input
+              aria-label="Tip-out percent"
+              inputMode="decimal"
+              type="number"
+              value={tipOutPercent}
+              onChange={(event) => setTipOutPercent(event.target.value)}
+            />
+          </label>
+        )}
+
         <div className="actions">
           <button className="primary-button" type="submit">
-            Save settings
+            Save restaurant
           </button>
           <button className="secondary-button" type="button" onClick={handleReset}>
             Reset demo data
@@ -387,6 +546,29 @@ export default function App() {
           </div>
           <p>{draft.date}</p>
         </div>
+
+        <label className="field">
+          <span>Restaurant</span>
+          <select
+            aria-label="Shift restaurant"
+            value={draft.restaurantId}
+            onChange={(event) => {
+              const restaurant = appState.restaurants.find((item) => item.id === event.target.value);
+              updateDraft({
+                restaurantId: event.target.value,
+                tipOutRuleSnapshot: restaurant?.defaultTipOut ?? { type: "none" },
+                manualTipOut: 0,
+                salesAmount: 0,
+              });
+            }}
+          >
+            {appState.restaurants.map((restaurant) => (
+              <option key={restaurant.id} value={restaurant.id}>
+                {restaurant.name}
+              </option>
+            ))}
+          </select>
+        </label>
 
         <label className="field">
           <span>Work hours</span>
@@ -444,6 +626,45 @@ export default function App() {
             />
           </label>
         </div>
+
+        <label className="field">
+          <span>Shift tip-out rule</span>
+          <select
+            aria-label="Shift tip-out rule"
+            value={draft.tipOutRuleSnapshot.type}
+            onChange={(event) =>
+              updateDraft({
+                tipOutRuleSnapshot: normalizeTipOutRule({
+                  type: event.target.value as TipOutRule["type"],
+                  amount: draft.tipOutRuleSnapshot.type === "fixed" ? draft.tipOutRuleSnapshot.amount : 0,
+                  percent:
+                    draft.tipOutRuleSnapshot.type === "salesPercent" ||
+                    draft.tipOutRuleSnapshot.type === "tipsPercent"
+                      ? draft.tipOutRuleSnapshot.percent
+                      : 0,
+                } as Partial<TipOutRule>),
+              })
+            }
+          >
+            <option value="none">No tip-out</option>
+            <option value="fixed">Fixed amount</option>
+            <option value="salesPercent">% of sales</option>
+            <option value="tipsPercent">% of total tips</option>
+          </select>
+        </label>
+
+        {draft.tipOutRuleSnapshot.type === "salesPercent" && (
+          <label className="field">
+            <span>Sales amount</span>
+            <input
+              aria-label="Sales amount"
+              inputMode="decimal"
+              type="number"
+              value={numberValue(draft.salesAmount)}
+              onChange={(event) => updateDraft({ salesAmount: parseAmount(event.target.value) })}
+            />
+          </label>
+        )}
 
         <section className="result-panel" aria-label="Shift results">
           <div>
@@ -559,7 +780,8 @@ export default function App() {
             <p>Total tips: {money(draft.cashTips)} cash + {money(draft.creditTips)} credit</p>
             <p>Wage income: {money(calculation.wageIncome)}</p>
             <p>Other income: {money(draft.otherIncome)}</p>
-            <p>Tip-out: {money(draft.manualTipOut)}</p>
+            <p>Tip-out: {money(calculation.tipOut)}</p>
+            <p>Tip-out rule: {tipOutRuleLabel(draft.tipOutRuleSnapshot)}</p>
           </div>
         )}
 
@@ -587,8 +809,8 @@ export default function App() {
 
         {appState.shifts.map((shift) => {
           const itemCalculation = calculateShift({
-            payType: appState.restaurant.payType,
-            payAmount: appState.restaurant.payAmount,
+            payType: payForShift(shift).payType,
+            payAmount: payForShift(shift).payAmount,
             hours: shift.hours,
             useClock: shift.useClock,
             clockIn: shift.clockIn,
@@ -598,6 +820,8 @@ export default function App() {
             creditTips: shift.creditTips,
             otherIncome: shift.otherIncome,
             manualTipOut: shift.manualTipOut,
+            salesAmount: shift.salesAmount,
+            tipOutRule: shift.tipOutRuleSnapshot,
           });
 
           return (

@@ -7,7 +7,7 @@ test("mobile user can persist restaurant settings across refresh and reset demo 
   await page.getByLabel("Restaurant name").fill("Blue Plate Diner");
   await page.getByLabel("Fixed pay per shift").check();
   await page.getByLabel("Pay amount").fill("95");
-  await page.getByRole("button", { name: "Save settings" }).click();
+  await page.getByRole("button", { name: "Save restaurant" }).click();
   await expect(page.getByText("Settings saved locally.")).toBeVisible();
 
   await page.reload();

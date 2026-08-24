@@ -59,11 +59,15 @@ function addDays(date: Date, days: number): Date {
   return next;
 }
 
-export function summarizeShifts(shifts: ShiftRecord[], pay: PaySettings): DateSummary {
+export function summarizeShifts(
+  shifts: ShiftRecord[],
+  pay: PaySettings | ((shift: ShiftRecord) => PaySettings),
+): DateSummary {
   const summary = shifts.reduce((current, shift) => {
+    const shiftPay = typeof pay === "function" ? pay(shift) : pay;
     const calculation = calculateShift({
-      payType: pay.payType,
-      payAmount: pay.payAmount,
+      payType: shiftPay.payType,
+      payAmount: shiftPay.payAmount,
       hours: shift.hours,
       useClock: shift.useClock,
       clockIn: shift.clockIn,
@@ -73,6 +77,8 @@ export function summarizeShifts(shifts: ShiftRecord[], pay: PaySettings): DateSu
       creditTips: shift.creditTips,
       otherIncome: shift.otherIncome,
       manualTipOut: shift.manualTipOut,
+      salesAmount: shift.salesAmount,
+      tipOutRule: shift.tipOutRuleSnapshot,
     });
 
     return {
@@ -94,7 +100,10 @@ export function summarizeShifts(shifts: ShiftRecord[], pay: PaySettings): DateSu
   };
 }
 
-export function summarizeShiftsByDate(shifts: ShiftRecord[], pay: PaySettings): Record<string, DateSummary> {
+export function summarizeShiftsByDate(
+  shifts: ShiftRecord[],
+  pay: PaySettings | ((shift: ShiftRecord) => PaySettings),
+): Record<string, DateSummary> {
   const grouped = shifts.reduce<Record<string, ShiftRecord[]>>((current, shift) => {
     current[shift.date] = [...(current[shift.date] ?? []), shift];
     return current;
@@ -107,7 +116,7 @@ export function summarizeShiftsByDate(shifts: ShiftRecord[], pay: PaySettings): 
 
 export function summarizePeriod(
   shifts: ShiftRecord[],
-  pay: PaySettings,
+  pay: PaySettings | ((shift: ShiftRecord) => PaySettings),
   anchorDate: string,
   period: "week" | "month",
 ): DateSummary {

@@ -5,6 +5,7 @@ import { buildMonthDays, summarizePeriod, summarizeShiftsByDate } from "./calend
 const baseShift: ShiftRecord = {
   id: "shift-1",
   date: "2026-08-23",
+  restaurantId: "default",
   hours: 4,
   useClock: false,
   clockIn: "",
@@ -14,6 +15,8 @@ const baseShift: ShiftRecord = {
   creditTips: 80,
   otherIncome: 0,
   manualTipOut: 10,
+  salesAmount: 0,
+  tipOutRuleSnapshot: { type: "none" },
   notes: "",
   createdAt: "2026-08-23T01:00:00.000Z",
   updatedAt: "2026-08-23T01:00:00.000Z",

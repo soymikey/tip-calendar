@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatPaySummary, normalizePayAmount } from "./restaurant";
+import { formatPaySummary, normalizePayAmount, restaurantDisplayName } from "./restaurant";
 
 describe("restaurant settings", () => {
   it("normalizes invalid pay amounts to zero", () => {
@@ -11,5 +11,9 @@ describe("restaurant settings", () => {
   it("describes hourly and fixed shift pay in plain language", () => {
     expect(formatPaySummary({ payType: "hourly", payAmount: 12.5 })).toBe("$12.50 per hour");
     expect(formatPaySummary({ payType: "fixedShift", payAmount: 80 })).toBe("$80.00 per shift");
+  });
+
+  it("marks the default restaurant in plain language", () => {
+    expect(restaurantDisplayName({ name: "Blue Plate", isDefault: true })).toBe("Blue Plate (default)");
   });
 });

@@ -8,7 +8,20 @@ export const demoState: AppState = {
     name: "Sunny Table Bistro",
     payType: "hourly",
     payAmount: 12.5,
+    creditTipPayout: "sameDay",
+    defaultTipOut: { type: "none" },
   },
+  defaultRestaurantId: "default",
+  restaurants: [
+    {
+      id: "default",
+      name: "Sunny Table Bistro",
+      payType: "hourly",
+      payAmount: 12.5,
+      creditTipPayout: "sameDay",
+      defaultTipOut: { type: "none" },
+    },
+  ],
   shifts: [],
 };
 

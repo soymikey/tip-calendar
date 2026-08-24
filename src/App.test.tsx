@@ -19,7 +19,7 @@ describe("App", () => {
     await user.click(screen.getByLabelText("Fixed pay per shift"));
     await user.clear(screen.getByLabelText("Pay amount"));
     await user.type(screen.getByLabelText("Pay amount"), "95");
-    await user.click(screen.getByRole("button", { name: "Save settings" }));
+    await user.click(screen.getByRole("button", { name: "Save restaurant" }));
 
     expect(screen.getByText("Settings saved locally.")).toBeInTheDocument();
     expect(loadAppState().restaurant).toMatchObject({
@@ -35,10 +35,10 @@ describe("App", () => {
 
     await user.clear(screen.getByLabelText("Restaurant name"));
     await user.type(screen.getByLabelText("Restaurant name"), "Changed");
-    await user.click(screen.getByRole("button", { name: "Save settings" }));
+    await user.click(screen.getByRole("button", { name: "Save restaurant" }));
     await user.click(screen.getByRole("button", { name: "Reset demo data" }));
 
-    expect(screen.getByDisplayValue(demoState.restaurant.name)).toBeInTheDocument();
+    expect(screen.getByLabelText("Restaurant name")).toHaveValue(demoState.restaurant.name);
     expect(screen.getByText("Demo data restored.")).toBeInTheDocument();
   });
 
@@ -77,7 +77,7 @@ describe("App", () => {
     expect(loadAppState().shifts[0].cashTips).toBe(40);
 
     await user.click(screen.getAllByRole("button", { name: /Delete shift/ })[0]);
-    await user.click(screen.getByRole("button", { name: "Delete" }));
+    await user.click(screen.getAllByRole("button", { name: "Delete" })[1]);
 
     expect(loadAppState().shifts).toHaveLength(0);
     expect(screen.getByRole("button", { name: "Undo delete" })).toBeInTheDocument();

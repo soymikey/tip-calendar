@@ -22,7 +22,7 @@ test("mobile user can create, edit, delete, undo, and refresh a shift", async ({
   await expect(page.getByLabel("Day detail").getByText("Net income $295.00")).toBeVisible();
 
   await page.getByLabel("Day detail").getByRole("button", { name: /Delete shift/ }).click();
-  await page.getByRole("button", { name: "Delete", exact: true }).click();
+  await page.getByLabel("Delete this shift?").getByRole("button", { name: "Delete" }).click();
   await expect(page.getByText("No shifts recorded yet.")).toBeVisible();
 
   await page.getByRole("button", { name: "Undo delete" }).click();
