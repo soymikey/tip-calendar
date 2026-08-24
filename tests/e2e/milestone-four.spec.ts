@@ -33,7 +33,8 @@ test("mobile user can export CSV and JSON, then import JSON only after confirmin
 
   await page.getByLabel("Replace local data with this backup").check();
   await page.getByRole("button", { name: "Import JSON backup" }).click();
-  await expect(page.getByLabel("Day detail").getByText("Net income $262.50")).toBeVisible();
+  await expect(page.getByLabel("Day detail").getByText("Net Income")).toBeVisible();
+  await expect(page.getByLabel("Day detail").getByText("$262.50")).toBeVisible();
 });
 
 test("mobile user sees plain language import error for bad backup data", async ({ page }) => {

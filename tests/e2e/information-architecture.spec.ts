@@ -80,22 +80,67 @@ test("empty calendar dates open a new Record Shift form directly", async ({ page
   await expect(page.getByRole("dialog", { name: `Day detail ${emptyDate}` })).toBeVisible();
   await expect(page.getByTestId("day-detail-scrim")).toBeVisible();
   await expect(page.getByRole("heading", { name: "Record Shift" })).toHaveCount(0);
-  await expect(page.getByLabel("Day detail").getByText("Net income $262.50")).toBeVisible();
+  await expect(page.getByLabel("Day detail").getByText("Net Income")).toBeVisible();
+  await expect(page.getByLabel("Day detail").getByText("$262.50")).toBeVisible();
 });
 
 test("recorded calendar dates open a modal Day Details sheet that can close", async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem(
+      "tip-calendar:v1",
+      JSON.stringify({
+        version: 1,
+        demoSeededAt: "2026-08-24T00:00:00.000Z",
+        restaurant: {
+          id: "olive-garden",
+          name: "The Olive Garden",
+          payType: "hourly",
+          payAmount: 12.5,
+          creditTipPayout: "sameDay",
+          defaultTipOut: { type: "none" },
+        },
+        defaultRestaurantId: "olive-garden",
+        restaurants: [
+          {
+            id: "olive-garden",
+            name: "The Olive Garden",
+            payType: "hourly",
+            payAmount: 12.5,
+            creditTipPayout: "sameDay",
+            defaultTipOut: { type: "none" },
+          },
+        ],
+        shifts: [
+          {
+            id: "dinner-shift",
+            date: "2025-08-21",
+            restaurantId: "olive-garden",
+            hours: 6.5,
+            useClock: true,
+            clockIn: "18:00",
+            clockOut: "00:30",
+            unpaidBreak: 0,
+            cashTips: 80,
+            creditTips: 190,
+            otherIncome: 0,
+            manualTipOut: 32,
+            salesAmount: 0,
+            tipOutRuleSnapshot: { type: "none" },
+            notes: "",
+            createdAt: "2025-08-21T18:00:00.000Z",
+            updatedAt: "2025-08-21T18:00:00.000Z",
+          },
+        ],
+      }),
+    );
+  });
+
   await page.goto("/");
 
-  const recordedDate = "2026-08-11";
-  await page.getByRole("button", { name: `Select ${recordedDate}` }).click();
-  await page.getByLabel("Work hours").fill("4");
-  await page.getByLabel("Cash tips").fill("30");
-  await page.getByRole("button", { name: "Save shift" }).click();
-  await expect(page.getByRole("dialog", { name: `Day detail ${recordedDate}` })).toBeVisible();
-  await page.keyboard.press("Escape");
-
-  await page.getByRole("button", { name: "Previous month" }).click();
-  await page.getByRole("button", { name: "Next month" }).click();
+  const recordedDate = "2025-08-21";
+  for (let index = 0; index < 12; index += 1) {
+    await page.getByRole("button", { name: "Previous month" }).click();
+  }
   await page.getByRole("button", { name: `Select ${recordedDate}` }).click();
 
   const daySheet = page.getByRole("dialog", { name: `Day detail ${recordedDate}` });
@@ -108,27 +153,41 @@ test("recorded calendar dates open a modal Day Details sheet that can close", as
     const sheet = node as HTMLElement;
     const handle = sheet.querySelector<HTMLElement>(".sheet-handle");
     const heading = sheet.querySelector<HTMLElement>(".day-sheet-heading");
-    const netSummary = sheet.querySelector<HTMLElement>(".day-net-summary");
-    const totals = sheet.querySelector<HTMLElement>(".day-totals");
-    const card = sheet.querySelector<HTMLElement>(".shift-card");
+    const card = sheet.querySelector<HTMLElement>(".shift-detail-card");
     const cta = Array.from(sheet.querySelectorAll<HTMLButtonElement>("button")).find(
-      (button) => button.textContent?.trim() === "Record Shift",
+      (button) => button.textContent?.trim() === "Edit Shift",
     );
 
     return {
       display: getComputedStyle(sheet).display,
-      totalsDisplay: totals ? getComputedStyle(totals).display : "",
-      rows: [handle, heading, netSummary, totals, card, cta].map((element) => element?.getBoundingClientRect().top ?? null),
+      cardBackground: card ? getComputedStyle(card).backgroundColor : "",
+      cardBorder: card ? getComputedStyle(card).borderTopStyle : "",
+      rows: [handle, heading, card, cta].map((element) => element?.getBoundingClientRect().top ?? null),
     };
   });
   expect(sheetLayout.display).toBe("flex");
-  expect(sheetLayout.totalsDisplay).toBe("flex");
+  expect(sheetLayout.cardBackground).toBe("rgb(255, 255, 255)");
+  expect(sheetLayout.cardBorder).toBe("solid");
   expect(sheetLayout.rows.every((row): row is number => row !== null)).toBe(true);
   expect(sheetLayout.rows).toEqual([...sheetLayout.rows].sort((a, b) => a - b));
-  await expect(daySheet.getByText("Day net $80.00")).toBeVisible();
-  await expect(daySheet.getByText("Net income $80.00")).toBeVisible();
-  await expect(daySheet.getByRole("button", { name: /Edit shift/ })).toBeVisible();
-  await expect(daySheet.getByRole("button", { name: "Record Shift" })).toBeVisible();
+  await expect(daySheet.getByRole("heading", { name: "Thursday, August 21" })).toBeVisible();
+  await expect(daySheet.getByText("Dinner Shift")).toBeVisible();
+  await expect(daySheet.getByText("The Olive Garden")).toBeVisible();
+  await expect(daySheet.getByText("6.5 hrs", { exact: true })).toBeVisible();
+  await expect(daySheet.getByText("6:00 PM – 12:30 AM (Aug 22)")).toBeVisible();
+  await expect(daySheet.getByText("Cash tips")).toBeVisible();
+  await expect(daySheet.getByText("$80.00")).toBeVisible();
+  await expect(daySheet.getByText("Credit card tips")).toBeVisible();
+  await expect(daySheet.getByText("$190.00")).toBeVisible();
+  await expect(daySheet.getByText("Hourly wage")).toBeVisible();
+  await expect(daySheet.getByText("6.5 hrs x $12.50/hr")).toBeVisible();
+  await expect(daySheet.getByText("$81.25")).toBeVisible();
+  await expect(daySheet.getByText("Tip-out")).toBeVisible();
+  await expect(daySheet.getByText("-$32.00")).toBeVisible();
+  await expect(daySheet.getByText("Net Income")).toBeVisible();
+  await expect(daySheet.getByText("$319.25")).toBeVisible();
+  await expect(daySheet.getByRole("button", { name: "Edit Shift" })).toBeVisible();
+  await expect(daySheet.getByRole("button", { name: "Record Shift" })).toHaveCount(0);
 
   await page.keyboard.press("Escape");
   await expect(daySheet).toHaveCount(0);
@@ -140,9 +199,9 @@ test("recorded calendar dates open a modal Day Details sheet that can close", as
   await expect(daySheet).toHaveCount(0);
 
   await page.getByRole("button", { name: `Select ${recordedDate}` }).click();
-  await daySheet.getByRole("button", { name: /Edit shift/ }).click();
+  await daySheet.getByRole("button", { name: "Edit Shift" }).click();
   await expect(page.getByRole("heading", { name: "Record Shift" })).toBeVisible();
-  await expect(page.getByLabel("Cash tips")).toHaveValue("30");
+  await expect(page.getByLabel("Cash tips")).toHaveValue("80");
 });
 
 test("My tab exposes separate settings, preferences, backup, and privacy views", async ({ page }) => {

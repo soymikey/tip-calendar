@@ -238,7 +238,7 @@ h1 {
   z-index: 7;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
   width: min(100%, 430px);
   max-height: calc(100vh - 72px);
   overflow-y: auto;
@@ -246,7 +246,7 @@ h1 {
   border-top-left-radius: 24px;
   border-top-right-radius: 24px;
   background: #ffffff;
-  padding: 10px 16px calc(env(safe-area-inset-bottom) + 16px);
+  padding: 10px 16px calc(env(safe-area-inset-bottom) + 18px);
   transform: translateX(-50%);
 }
 
@@ -266,8 +266,8 @@ h1 {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 3px;
-  padding-top: 2px;
+  gap: 4px;
+  padding-top: 4px;
   text-align: center;
 }
 
@@ -280,65 +280,159 @@ h1 {
 
 .day-sheet-heading h2 {
   margin: 0;
-  font-size: 22px;
+  color: #1d1d1f;
+  font-size: 24px;
+  font-weight: 800;
   line-height: 1.15;
 }
 
-.day-net-summary {
+.shift-detail-group {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  padding: 6px 0 4px;
-  text-align: center;
+  gap: 12px;
 }
 
-.day-net-summary strong {
+.shift-detail-card {
+  width: 100%;
+  border: 1px solid #e5e5ea;
+  border-radius: 18px;
+  background: #ffffff;
+  overflow: hidden;
+}
+
+.shift-detail-topline {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 16px 8px;
+}
+
+.shift-detail-topline h3 {
+  margin: 0 0 3px;
   color: #1d1d1f;
-  font-size: 34px;
-  line-height: 1;
+  font-size: 17px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.shift-detail-topline p {
+  margin: 0;
+  color: #86868b;
+  font-size: 14px;
+  line-height: 1.25;
+}
+
+.shift-detail-topline strong {
+  flex: 0 0 auto;
+  color: #515154;
+  font-size: 14px;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
 
-.day-net-summary span {
+.shift-detail-time {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin: 0;
+  padding: 0 16px 14px;
   color: #86868b;
   font-size: 13px;
-}
-
-.day-totals {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-  border-top: 1px solid #e5e5ea;
-  border-bottom: 1px solid #e5e5ea;
-}
-
-.day-totals p {
-  display: flex;
-  min-height: 34px;
-  align-items: center;
-  margin-bottom: 0;
-  border-bottom: 1px solid #e5e5ea;
-  padding: 7px 0;
-  background: #ffffff;
-  color: #515154;
-  font-size: 13px;
+  line-height: 1.25;
   font-variant-numeric: tabular-nums;
 }
 
-.day-totals p:last-child {
-  border-bottom: 0;
+.shift-detail-time span {
+  color: #86868b;
 }
 
-.day-detail-sheet .shift-card {
-  border-color: #e5e5ea;
-  border-radius: 16px;
-  background: #ffffff;
+.shift-detail-lines {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  border-top: 1px solid #e5e5ea;
 }
 
-.day-sheet-cta {
-  width: 100%;
-  margin-top: 2px;
+.shift-detail-lines div {
+  display: flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 16px;
+  border-bottom: 1px solid #e5e5ea;
+}
+
+.shift-detail-lines dt,
+.shift-detail-lines dd {
+  margin: 0;
+}
+
+.shift-detail-lines dt {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  color: #86868b;
+  font-size: 14px;
+}
+
+.shift-detail-lines small {
+  color: #86868b;
+  font-size: 12px;
+}
+
+.shift-detail-lines dd {
+  color: #1d1d1f;
+  font-size: 15px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.shift-detail-net {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px 16px;
+}
+
+.shift-detail-net span {
+  color: #1d1d1f;
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.shift-detail-net strong {
+  color: #34c759;
+  font-size: 26px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.shift-detail-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+}
+
+.shift-detail-actions button,
+.add-shift-link {
+  min-height: 44px;
+  border: 0;
+  background: transparent;
+  color: #0066cc;
+  padding: 0 6px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.shift-detail-actions button:last-child {
+  color: #86868b;
+  font-weight: 600;
 }
 
 .section-heading {

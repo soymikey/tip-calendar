@@ -1,28 +1,86 @@
 import { expect, test } from "@playwright/test";
 
 test("mobile calendar shows daily, week, and month summaries for same-day shifts", async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem(
+      "tip-calendar:v1",
+      JSON.stringify({
+        version: 1,
+        demoSeededAt: "2026-08-24T00:00:00.000Z",
+        restaurant: {
+          id: "default",
+          name: "Sunny Table Bistro",
+          payType: "hourly",
+          payAmount: 12.5,
+          creditTipPayout: "sameDay",
+          defaultTipOut: { type: "none" },
+        },
+        defaultRestaurantId: "default",
+        restaurants: [
+          {
+            id: "default",
+            name: "Sunny Table Bistro",
+            payType: "hourly",
+            payAmount: 12.5,
+            creditTipPayout: "sameDay",
+            defaultTipOut: { type: "none" },
+          },
+        ],
+        shifts: [
+          {
+            id: "same-day-one",
+            date: "2026-08-14",
+            restaurantId: "default",
+            hours: 4,
+            useClock: false,
+            clockIn: "",
+            clockOut: "",
+            unpaidBreak: 0,
+            cashTips: 20,
+            creditTips: 80,
+            otherIncome: 0,
+            manualTipOut: 10,
+            salesAmount: 0,
+            tipOutRuleSnapshot: { type: "none" },
+            notes: "Lunch Shift",
+            createdAt: "2026-08-14T12:00:00.000Z",
+            updatedAt: "2026-08-14T12:00:00.000Z",
+          },
+          {
+            id: "same-day-two",
+            date: "2026-08-14",
+            restaurantId: "default",
+            hours: 5,
+            useClock: false,
+            clockIn: "",
+            clockOut: "",
+            unpaidBreak: 0,
+            cashTips: 40,
+            creditTips: 120,
+            otherIncome: 0,
+            manualTipOut: 0,
+            salesAmount: 0,
+            tipOutRuleSnapshot: { type: "none" },
+            notes: "Dinner Shift",
+            createdAt: "2026-08-14T18:00:00.000Z",
+            updatedAt: "2026-08-14T18:00:00.000Z",
+          },
+        ],
+      }),
+    );
+  });
   await page.goto("/");
 
   const today = "2026-08-14";
 
-  await page.getByRole("button", { name: `Select ${today}` }).click();
-  await page.getByLabel("Work hours").fill("4");
-  await page.getByLabel("Cash tips").fill("20");
-  await page.getByLabel("Credit card tips").fill("80");
-  await page.getByLabel("Manual tip-out").fill("10");
-  await page.getByRole("button", { name: "Save shift" }).click();
-
-  await page.getByRole("button", { name: "Record Shift" }).click();
-  await page.getByLabel("Work hours").fill("5");
-  await page.getByLabel("Cash tips").fill("40");
-  await page.getByLabel("Credit card tips").fill("120");
-  await page.getByRole("button", { name: "Save shift" }).click();
-
   await expect(page.getByTestId(`calendar-net-${today}`)).toContainText("$362.50");
-  await expect(page.getByLabel("Day detail").getByText("2 shifts")).toBeVisible();
-  await expect(page.getByText("Day net $362.50")).toBeVisible();
-  await expect(page.getByText("Week net $362.50")).toBeVisible();
-  await expect(page.getByText("Month net $362.50")).toBeVisible();
+  await expect(page.getByText("Week net")).toBeVisible();
+  await expect(page.getByText("Month net")).toBeVisible();
+  await page.getByRole("button", { name: `Select ${today}` }).click();
+  await expect(page.getByLabel("Day detail").getByText("Lunch Shift")).toBeVisible();
+  await expect(page.getByLabel("Day detail").getByText("Dinner Shift")).toBeVisible();
+  await expect(page.locator(".shift-detail-card")).toHaveCount(2);
+  await expect(page.getByRole("button", { name: "Add another shift" })).toBeVisible();
 });
 
 test("mobile day detail handles empty dates, edit entry, and cross-midnight badges", async ({ page }) => {

@@ -63,7 +63,8 @@ describe("App", () => {
     await user.click(screen.getByRole("button", { name: "Save shift" }));
 
     expect(loadAppState().shifts).toHaveLength(1);
-    expect(screen.getAllByText("Net income $285.00").length).toBeGreaterThan(0);
+    expect(screen.getByText("Net Income")).toBeInTheDocument();
+    expect(screen.getAllByText("$285.00").length).toBeGreaterThan(0);
   });
 
   it("edits, deletes, and restores a saved shift", async () => {

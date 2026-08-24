@@ -48,6 +48,59 @@ function numberValue(value: number): string {
   return value === 0 ? "" : String(value);
 }
 
+function dateAtNoon(date: string): Date {
+  return new Date(`${date}T12:00:00`);
+}
+
+function formatSheetDate(date: string): string {
+  return new Intl.DateTimeFormat("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+  }).format(dateAtNoon(date));
+}
+
+function formatShortDate(date: Date): string {
+  return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric" }).format(date);
+}
+
+function formatClockTime(value?: string): string {
+  if (!value) {
+    return "";
+  }
+
+  const [hours, minutes] = value.split(":").map(Number);
+  if (!Number.isFinite(hours) || !Number.isFinite(minutes)) {
+    return value;
+  }
+
+  return new Intl.DateTimeFormat("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(new Date(2026, 0, 1, hours, minutes));
+}
+
+function formatShiftTime(shift: ShiftRecord, isCrossMidnight: boolean): string {
+  if (!shift.useClock || !shift.clockIn || !shift.clockOut) {
+    return `${shift.hours} hrs`;
+  }
+
+  const nextDate = dateAtNoon(shift.date);
+  nextDate.setDate(nextDate.getDate() + 1);
+  const nextDay = isCrossMidnight ? ` (${formatShortDate(nextDate)})` : "";
+  return `${formatClockTime(shift.clockIn)} – ${formatClockTime(shift.clockOut)}${nextDay}`;
+}
+
+function inferShiftName(shift: ShiftRecord): string {
+  const firstLine = shift.notes.trim().split("\n")[0]?.trim();
+  if (firstLine) {
+    return firstLine;
+  }
+
+  const startHour = shift.clockIn ? Number(shift.clockIn.split(":")[0]) : null;
+  return startHour !== null && startHour >= 16 ? "Dinner Shift" : "Lunch Shift";
+}
+
 export default function App() {
   const [appState, setAppState] = useState<AppState>(() => loadAppState());
   const [name, setName] = useState(appState.restaurant.name);
@@ -436,25 +489,14 @@ export default function App() {
         >
           <div className="sheet-handle" aria-hidden="true" />
           <div className="day-sheet-heading">
-            <h2 id="day-detail-title">Day Details</h2>
+            <h2 id="day-detail-title">{formatSheetDate(selectedDate)}</h2>
             <p data-testid="selected-date">{selectedDate}</p>
           </div>
-          <div className="day-net-summary" aria-label="Day net income summary">
-            <strong>{money(selectedSummary.netIncome)}</strong>
-            <span>{selectedSummary.shiftCount} shifts</span>
-          </div>
-          <div className="day-totals">
-            <p>Day net {money(selectedSummary.netIncome)}</p>
-            <p>Week net {money(weekSummary.netIncome)}</p>
-            <p>Month net {money(monthSummary.netIncome)}</p>
-            <p>Total tips {money(selectedSummary.totalTips)}</p>
-            <p>Average actual hourly {selectedSummary.averageActualHourly === null ? "$0.00/hr" : `${money(selectedSummary.averageActualHourly)}/hr`}</p>
-            <p>Total effective hours {selectedSummary.effectiveHours}</p>
-          </div>
           {selectedShifts.map((shift) => {
+            const shiftPay = payForShift(shift);
             const itemCalculation = calculateShift({
-              payType: payForShift(shift).payType,
-              payAmount: payForShift(shift).payAmount,
+              payType: shiftPay.payType,
+              payAmount: shiftPay.payAmount,
               hours: shift.hours,
               useClock: shift.useClock,
               clockIn: shift.clockIn,
@@ -467,28 +509,67 @@ export default function App() {
               salesAmount: shift.salesAmount,
               tipOutRule: shift.tipOutRuleSnapshot,
             });
+            const shiftRestaurant =
+              appState.restaurants.find((restaurant) => restaurant.id === shift.restaurantId) ?? appState.restaurant;
 
             return (
-              <article className="shift-card" key={shift.id}>
-                <div>
-                  <h3>{shift.date}</h3>
-                  <p>Net income {money(itemCalculation.netIncome)}</p>
-                  {itemCalculation.isCrossMidnight && <p>Cross-midnight shift</p>}
-                </div>
-                <div className="card-actions">
-                  <button type="button" onClick={() => handleEditShift(shift)}>
-                    Edit shift {shift.date}
+              <div className="shift-detail-group" key={shift.id}>
+                <article className="shift-detail-card">
+                  <div className="shift-detail-topline">
+                    <div>
+                      <h3>{inferShiftName(shift)}</h3>
+                      <p>{shiftRestaurant.name}</p>
+                    </div>
+                    <strong>{itemCalculation.effectiveHours} hrs</strong>
+                  </div>
+                  <p className="shift-detail-time">
+                    {formatShiftTime(shift, itemCalculation.isCrossMidnight)}
+                    {itemCalculation.isCrossMidnight && <span>Cross-midnight shift</span>}
+                  </p>
+                  <dl className="shift-detail-lines">
+                    <div>
+                      <dt>Cash tips</dt>
+                      <dd>{money(shift.cashTips)}</dd>
+                    </div>
+                    <div>
+                      <dt>Credit card tips</dt>
+                      <dd>{money(shift.creditTips)}</dd>
+                    </div>
+                    <div>
+                      <dt>
+                        <span>Hourly wage</span>
+                        <small>
+                          {itemCalculation.effectiveHours} hrs x {money(shiftPay.payAmount)}/hr
+                        </small>
+                      </dt>
+                      <dd>{money(itemCalculation.wageIncome)}</dd>
+                    </div>
+                    <div>
+                      <dt>Tip-out</dt>
+                      <dd>-{money(itemCalculation.tipOut)}</dd>
+                    </div>
+                  </dl>
+                  <div className="shift-detail-net">
+                    <span>Net Income</span>
+                    <strong>{money(itemCalculation.netIncome)}</strong>
+                  </div>
+                </article>
+                <div className="shift-detail-actions">
+                  <button type="button" aria-label={`Edit shift ${shift.date}`} onClick={() => handleEditShift(shift)}>
+                    Edit Shift
                   </button>
-                  <button type="button" onClick={() => setDeleteTarget(shift)}>
-                    Delete shift {shift.date}
+                  <button type="button" aria-label={`Delete shift ${shift.date}`} onClick={() => setDeleteTarget(shift)}>
+                    Delete Shift
                   </button>
                 </div>
-              </article>
+              </div>
             );
           })}
-          <button className="primary-button day-sheet-cta" type="button" onClick={() => startShiftForDate(selectedDate)}>
-            Record Shift
-          </button>
+          {selectedShifts.length > 1 && (
+            <button className="text-button add-shift-link" type="button" onClick={() => startShiftForDate(selectedDate)}>
+              Add another shift
+            </button>
+          )}
         </section>
         </>
       )}
