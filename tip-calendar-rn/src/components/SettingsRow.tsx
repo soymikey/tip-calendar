@@ -24,6 +24,7 @@ export function SettingsRow({
   return (
     <Pressable
       accessibilityRole={onPress ? "button" : undefined}
+      accessibilityLabel={title}
       disabled={!onPress}
       className="min-h-[52px] flex-row items-center px-4 py-3"
       onPress={onPress}>

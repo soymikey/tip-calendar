@@ -208,6 +208,8 @@ export default function CalendarScreen() {
               {cards.map((card) => (
                 <View
                   key={card.label}
+                  accessible
+                  accessibilityLabel={`${card.label} ${card.value}`}
                   className="flex-1 gap-0.5 rounded-xl px-2.5 py-3"
                   style={{ backgroundColor: colors.parchment }}>
                   <Text className="text-[11px] font-medium text-[#8E8E93]">{card.label}</Text>
