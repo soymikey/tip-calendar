@@ -40,9 +40,9 @@ export function reduceOnboarding(
     case "setName":
       return { ...current, name: action.name }
     case "next":
-      return { ...current, step: Math.min(3, (current.step + 1) as OnboardingStep) }
+      return { ...current, step: current.step === 3 ? 3 : ((current.step + 1) as OnboardingStep) }
     case "back":
-      return { ...current, step: Math.max(1, (current.step - 1) as OnboardingStep) }
+      return { ...current, step: current.step === 1 ? 1 : ((current.step - 1) as OnboardingStep) }
     case "setPay":
       return { ...current, payType: action.payType, payAmountCents: action.payAmountCents }
     case "skipPay":
