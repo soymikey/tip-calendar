@@ -26,6 +26,9 @@ textarea {
 
 .app-shell {
   display: grid;
+  align-content: start;
+  grid-auto-rows: max-content;
+  flex-grow: 0;
   gap: 12px;
   width: min(100%, 430px);
   min-height: 100vh;

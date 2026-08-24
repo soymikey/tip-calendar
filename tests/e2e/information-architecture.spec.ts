@@ -22,9 +22,19 @@ test("Calendar home uses white canvas and Figma-style selected date treatment", 
   await page.goto("/");
 
   const bodyBackground = await page.locator("body").evaluate((node) => getComputedStyle(node).backgroundColor);
-  const appBackground = await page.locator("main").evaluate((node) => getComputedStyle(node).backgroundColor);
-  const appPaddingTop = await page.locator("main").evaluate((node) => parseFloat(getComputedStyle(node).paddingTop));
+  const appShell = page.locator("main");
+  const appBackground = await appShell.evaluate((node) => getComputedStyle(node).backgroundColor);
+  const appPaddingTop = await appShell.evaluate((node) => parseFloat(getComputedStyle(node).paddingTop));
+  const appAlignContent = await appShell.evaluate((node) => getComputedStyle(node).alignContent);
+  const appGridAutoRows = await appShell.evaluate((node) => getComputedStyle(node).gridAutoRows);
+  const appFlexGrow = await appShell.evaluate((node) => getComputedStyle(node).flexGrow);
   const calendarGap = await page.locator(".calendar-panel").evaluate((node) => parseFloat(getComputedStyle(node).gap));
+  const navPosition = await page
+    .getByRole("navigation", { name: "Primary" })
+    .evaluate((node) => getComputedStyle(node).position);
+  const navBottom = await page
+    .getByRole("navigation", { name: "Primary" })
+    .evaluate((node) => getComputedStyle(node).bottom);
   const selectedDay = page.locator(".calendar-day[aria-pressed='true']").first();
   const selectedBackground = await selectedDay.evaluate((node) => getComputedStyle(node).backgroundColor);
   const selectedColor = await selectedDay.evaluate((node) => getComputedStyle(node).color);
@@ -36,8 +46,13 @@ test("Calendar home uses white canvas and Figma-style selected date treatment", 
   expect(appBackground).toBe("rgba(0, 0, 0, 0)");
   expect(appPaddingTop).toBeGreaterThanOrEqual(16);
   expect(appPaddingTop).toBeLessThanOrEqual(20);
+  expect(appAlignContent).toBe("start");
+  expect(appGridAutoRows).toBe("max-content");
+  expect(appFlexGrow).toBe("0");
   expect(calendarGap).toBeGreaterThanOrEqual(12);
   expect(calendarGap).toBeLessThanOrEqual(16);
+  expect(navPosition).toBe("fixed");
+  expect(navBottom).toBe("0px");
   expect(selectedBackground).toBe("rgb(0, 102, 204)");
   expect(selectedColor).toBe("rgb(255, 255, 255)");
   expect(defaultBorder).toBe("none");
