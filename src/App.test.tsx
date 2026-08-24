@@ -48,7 +48,7 @@ describe("App", () => {
     const user = userEvent.setup();
     render(<App />);
 
-    await user.click(screen.getByRole("button", { name: "Record Shift" }));
+    await user.click(screen.getByRole("button", { name: "Select 2026-08-10" }));
     await user.type(screen.getByLabelText("Work hours"), "6");
     await user.type(screen.getByLabelText("Cash tips"), "45");
     await user.type(screen.getByLabelText("Credit card tips"), "180");
@@ -68,7 +68,7 @@ describe("App", () => {
     const user = userEvent.setup();
     render(<App />);
 
-    await user.click(screen.getByRole("button", { name: "Record Shift" }));
+    await user.click(screen.getByRole("button", { name: "Select 2026-08-10" }));
     await user.type(screen.getByLabelText("Work hours"), "4");
     await user.type(screen.getByLabelText("Cash tips"), "20");
     await user.click(screen.getByRole("button", { name: "Save shift" }));
@@ -94,7 +94,7 @@ describe("App", () => {
     const user = userEvent.setup();
     render(<App />);
 
-    await user.click(screen.getByRole("button", { name: "Record Shift" }));
+    await user.click(screen.getByRole("button", { name: "Select 2026-08-10" }));
     await user.click(screen.getByRole("button", { name: "More options" }));
     await user.click(screen.getByLabelText("Use clock in and out"));
     await user.type(screen.getByLabelText("Clock in"), "22:30");

@@ -16,7 +16,7 @@ test("mobile user can add a restaurant and save a shift with automatic tip-out s
   await expect(page.getByText("Blue Plate Diner (default)")).toBeVisible();
 
   await page.getByRole("tab", { name: "Calendar" }).click();
-  await page.getByRole("button", { name: "Record Shift" }).click();
+  await page.getByRole("button", { name: "Select 2026-08-15" }).click();
   await expect(page.getByLabel("Shift restaurant").locator("option:checked")).toHaveText("Blue Plate Diner");
   await page.getByLabel("Work hours").fill("5");
   await page.getByLabel("Cash tips").fill("40");
@@ -41,7 +41,7 @@ test("mobile user can use sales percent tip-out only when sales amount is needed
   await page.getByRole("button", { name: "Save restaurant" }).click();
 
   await page.getByRole("tab", { name: "Calendar" }).click();
-  await page.getByRole("button", { name: "Record Shift" }).click();
+  await page.getByRole("button", { name: "Select 2026-08-16" }).click();
   await expect(page.getByLabel("Sales amount")).toBeVisible();
   await page.getByLabel("Work hours").fill("4");
   await page.getByLabel("Sales amount").fill("1000");

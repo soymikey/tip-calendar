@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 test("mobile user can export CSV and JSON, then import JSON only after confirming", async ({ page }) => {
   await page.goto("/");
 
-  await page.getByRole("button", { name: "Record Shift" }).click();
+  await page.getByRole("button", { name: "Select 2026-08-17" }).click();
   await page.getByLabel("Work hours").fill("5");
   await page.getByLabel("Cash tips").fill("40");
   await page.getByLabel("Credit card tips").fill("160");
@@ -19,7 +19,7 @@ test("mobile user can export CSV and JSON, then import JSON only after confirmin
 
   await page.getByRole("button", { name: "Reset demo data" }).click();
   await page.getByRole("tab", { name: "Calendar" }).click();
-  await expect(page.getByLabel("Day detail").getByText("This day has no shifts yet.")).toBeVisible();
+  await expect(page.getByRole("dialog", { name: /Day detail/ })).toHaveCount(0);
   await page.getByRole("tab", { name: "Settings" }).click();
 
   await page.getByLabel("JSON backup to import").fill(backup);

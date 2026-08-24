@@ -190,6 +190,18 @@ export default function App() {
     setScreen("shift");
   }
 
+  function handleCalendarDateSelect(date: string) {
+    if (dateSummaries[date]?.shiftCount) {
+      setSelectedDate(date);
+      setScreen("home");
+      setActiveTab("calendar");
+      setStatus("idle");
+      return;
+    }
+
+    startShiftForDate(date);
+  }
+
   function handleShiftSave(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -355,7 +367,7 @@ export default function App() {
                 ].join(" ")}
                 key={day.date}
                 type="button"
-                onClick={() => setSelectedDate(day.date)}
+                onClick={() => handleCalendarDateSelect(day.date)}
                 aria-label={`Select ${day.date}`}
               >
                 <span>{day.dayNumber}</span>
@@ -368,20 +380,20 @@ export default function App() {
         </div>
       </section>
 
-      <section
-        className="settings-panel day-detail"
-        role="dialog"
-        aria-modal="false"
-        aria-label={`Day detail ${selectedDate}`}
-      >
-        <div className="section-heading">
-          <div>
-            <h2 id="day-detail-title">Day detail</h2>
-            <p data-testid="selected-date">{selectedDate}</p>
+      {selectedSummary.shiftCount > 0 && (
+        <section
+          className="settings-panel day-detail"
+          role="dialog"
+          aria-modal="false"
+          aria-label={`Day detail ${selectedDate}`}
+        >
+          <div className="section-heading">
+            <div>
+              <h2 id="day-detail-title">Day detail</h2>
+              <p data-testid="selected-date">{selectedDate}</p>
+            </div>
+            <p>{selectedSummary.shiftCount} shifts</p>
           </div>
-          <p>{selectedSummary.shiftCount} shifts</p>
-        </div>
-        {selectedSummary.shiftCount > 0 ? (
           <div className="day-totals">
             <p>Day net {money(selectedSummary.netIncome)}</p>
             <p>Week net {money(weekSummary.netIncome)}</p>
@@ -390,48 +402,46 @@ export default function App() {
             <p>Average actual hourly {selectedSummary.averageActualHourly === null ? "$0.00/hr" : `${money(selectedSummary.averageActualHourly)}/hr`}</p>
             <p>Total effective hours {selectedSummary.effectiveHours}</p>
           </div>
-        ) : (
-          <p className="empty-state">This day has no shifts yet.</p>
-        )}
-        <button className="primary-button" type="button" onClick={() => startShiftForDate(selectedDate)}>
-          Record Shift
-        </button>
-        {selectedShifts.map((shift) => {
-          const itemCalculation = calculateShift({
-            payType: payForShift(shift).payType,
-            payAmount: payForShift(shift).payAmount,
-            hours: shift.hours,
-            useClock: shift.useClock,
-            clockIn: shift.clockIn,
-            clockOut: shift.clockOut,
-            unpaidBreak: shift.unpaidBreak,
-            cashTips: shift.cashTips,
-            creditTips: shift.creditTips,
-            otherIncome: shift.otherIncome,
-            manualTipOut: shift.manualTipOut,
-            salesAmount: shift.salesAmount,
-            tipOutRule: shift.tipOutRuleSnapshot,
-          });
+          <button className="primary-button" type="button" onClick={() => startShiftForDate(selectedDate)}>
+            Record Shift
+          </button>
+          {selectedShifts.map((shift) => {
+            const itemCalculation = calculateShift({
+              payType: payForShift(shift).payType,
+              payAmount: payForShift(shift).payAmount,
+              hours: shift.hours,
+              useClock: shift.useClock,
+              clockIn: shift.clockIn,
+              clockOut: shift.clockOut,
+              unpaidBreak: shift.unpaidBreak,
+              cashTips: shift.cashTips,
+              creditTips: shift.creditTips,
+              otherIncome: shift.otherIncome,
+              manualTipOut: shift.manualTipOut,
+              salesAmount: shift.salesAmount,
+              tipOutRule: shift.tipOutRuleSnapshot,
+            });
 
-          return (
-            <article className="shift-card" key={shift.id}>
-              <div>
-                <h3>{shift.date}</h3>
-                <p>Net income {money(itemCalculation.netIncome)}</p>
-                {itemCalculation.isCrossMidnight && <p>Cross-midnight shift</p>}
-              </div>
-              <div className="card-actions">
-                <button type="button" onClick={() => handleEditShift(shift)}>
-                  Edit shift {shift.date}
-                </button>
-                <button type="button" onClick={() => setDeleteTarget(shift)}>
-                  Delete shift {shift.date}
-                </button>
-              </div>
-            </article>
-          );
-        })}
-      </section>
+            return (
+              <article className="shift-card" key={shift.id}>
+                <div>
+                  <h3>{shift.date}</h3>
+                  <p>Net income {money(itemCalculation.netIncome)}</p>
+                  {itemCalculation.isCrossMidnight && <p>Cross-midnight shift</p>}
+                </div>
+                <div className="card-actions">
+                  <button type="button" onClick={() => handleEditShift(shift)}>
+                    Edit shift {shift.date}
+                  </button>
+                  <button type="button" onClick={() => setDeleteTarget(shift)}>
+                    Delete shift {shift.date}
+                  </button>
+                </div>
+              </article>
+            );
+          })}
+        </section>
+      )}
         </>
       )}
 
