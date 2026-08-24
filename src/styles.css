@@ -30,7 +30,7 @@ textarea {
   width: min(100%, 430px);
   min-height: 100vh;
   margin: 0 auto;
-  padding: 8px 16px 92px;
+  padding: calc(env(safe-area-inset-top) + 18px) 16px calc(env(safe-area-inset-bottom) + 92px);
 }
 
 .hero-panel {
@@ -67,8 +67,8 @@ h1 {
 
 .settings-panel {
   display: grid;
-  gap: 18px;
-  padding: 20px;
+  gap: 16px;
+  padding: 16px;
   border: 1px solid #e5e5ea;
   border-radius: 18px;
   background: #ffffff;
@@ -351,7 +351,9 @@ h1 {
 
 .my-list {
   display: grid;
-  gap: 8px;
+  gap: 0;
+  border-top: 1px solid #e5e5ea;
+  border-bottom: 1px solid #e5e5ea;
 }
 
 .my-list button {
@@ -359,13 +361,18 @@ h1 {
   grid-template-columns: 1fr auto;
   gap: 10px;
   align-items: center;
-  min-height: 56px;
+  min-height: 46px;
   border: 0;
-  border-radius: 12px;
-  background: #f5f5f7;
+  border-bottom: 1px solid #e5e5ea;
+  border-radius: 0;
+  background: #ffffff;
   color: #1d1d1f;
-  padding: 12px 14px;
+  padding: 10px 2px;
   text-align: left;
+}
+
+.my-list button:last-child {
+  border-bottom: 0;
 }
 
 .my-list span {

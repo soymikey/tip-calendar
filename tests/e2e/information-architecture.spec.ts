@@ -23,6 +23,8 @@ test("Calendar home uses white canvas and Figma-style selected date treatment", 
 
   const bodyBackground = await page.locator("body").evaluate((node) => getComputedStyle(node).backgroundColor);
   const appBackground = await page.locator("main").evaluate((node) => getComputedStyle(node).backgroundColor);
+  const appPaddingTop = await page.locator("main").evaluate((node) => parseFloat(getComputedStyle(node).paddingTop));
+  const calendarGap = await page.locator(".calendar-panel").evaluate((node) => parseFloat(getComputedStyle(node).gap));
   const selectedDay = page.locator(".calendar-day[aria-pressed='true']").first();
   const selectedBackground = await selectedDay.evaluate((node) => getComputedStyle(node).backgroundColor);
   const selectedColor = await selectedDay.evaluate((node) => getComputedStyle(node).color);
@@ -32,6 +34,10 @@ test("Calendar home uses white canvas and Figma-style selected date treatment", 
 
   expect(bodyBackground).toBe("rgb(255, 255, 255)");
   expect(appBackground).toBe("rgba(0, 0, 0, 0)");
+  expect(appPaddingTop).toBeGreaterThanOrEqual(16);
+  expect(appPaddingTop).toBeLessThanOrEqual(20);
+  expect(calendarGap).toBeGreaterThanOrEqual(12);
+  expect(calendarGap).toBeLessThanOrEqual(16);
   expect(selectedBackground).toBe("rgb(0, 102, 204)");
   expect(selectedColor).toBe("rgb(255, 255, 255)");
   expect(defaultBorder).toBe("none");
@@ -89,6 +95,22 @@ test("My tab exposes separate settings, preferences, backup, and privacy views",
   await page.goto("/");
 
   await page.getByRole("tab", { name: "My" }).click();
+  const myPanelGap = await page.locator(".my-panel").evaluate((node) => parseFloat(getComputedStyle(node).gap));
+  const myListGap = await page.locator(".my-list").evaluate((node) => parseFloat(getComputedStyle(node).gap));
+  const firstEntry = page.getByRole("button", { name: "Restaurant settings" });
+  const firstEntryMinHeight = await firstEntry.evaluate((node) => parseFloat(getComputedStyle(node).minHeight));
+  const firstEntryRadius = await firstEntry.evaluate((node) => getComputedStyle(node).borderRadius);
+  const firstEntryDivider = await firstEntry.evaluate((node) => getComputedStyle(node).borderBottomStyle);
+  const firstEntryBackground = await firstEntry.evaluate((node) => getComputedStyle(node).backgroundColor);
+
+  expect(myPanelGap).toBe(16);
+  expect(myListGap).toBe(0);
+  expect(firstEntryMinHeight).toBeGreaterThanOrEqual(44);
+  expect(firstEntryMinHeight).toBeLessThanOrEqual(50);
+  expect(firstEntryRadius).toBe("0px");
+  expect(firstEntryDivider).toBe("solid");
+  expect(firstEntryBackground).toBe("rgb(255, 255, 255)");
+
   await expect(page.getByRole("tab", { name: "My" })).toHaveAttribute("aria-selected", "true");
   await expect(page.getByRole("heading", { name: "My" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Restaurant settings" })).toBeVisible();

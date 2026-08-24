@@ -316,7 +316,7 @@ export default function App() {
 
   return (
     <main className="app-shell">
-      {!(screen === "home" && activeTab === "calendar") && (
+      {screen === "shift" && (
         <section className="hero-panel" aria-labelledby="app-title">
           <p className="eyebrow">Tip Calendar</p>
           <h1 id="app-title">Tip Calendar</h1>

@@ -13,8 +13,12 @@ export default defineConfig({
   },
   projects: [
     {
-      name: "mobile-chrome",
+      name: "pixel-5",
       use: { ...devices["Pixel 5"] },
+    },
+    {
+      name: "iphone-14-pro-max",
+      use: { ...devices["iPhone 14 Pro Max"], browserName: "chromium" },
     },
   ],
 });
