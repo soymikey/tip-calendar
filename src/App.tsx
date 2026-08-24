@@ -27,6 +27,7 @@ import {
 import {
   deleteShift,
   loadAppState,
+  replaceAppState,
   resetDemoData,
   restoreShift,
   saveRestaurant,
@@ -34,6 +35,7 @@ import {
   setDefaultRestaurant,
   deleteRestaurant,
 } from "./storage/localStore";
+import { exportCsv, exportJsonBackup, importJsonBackup } from "./storage/backup";
 
 type SaveStatus = "idle" | "saved" | "reset" | "shiftSaved" | "shiftDeleted" | "shiftRestored";
 
@@ -66,6 +68,10 @@ export default function App() {
   const [deleteTarget, setDeleteTarget] = useState<ShiftRecord | null>(null);
   const [undoShift, setUndoShift] = useState<ShiftRecord | null>(null);
   const [selectedDate, setSelectedDate] = useState(draft.date);
+  const [exportOutput, setExportOutput] = useState("");
+  const [importText, setImportText] = useState("");
+  const [importConfirmed, setImportConfirmed] = useState(false);
+  const [backupMessage, setBackupMessage] = useState("No account or cloud sync. Data stays in this browser.");
 
   const selectedRestaurant =
     appState.restaurants.find((restaurant) => restaurant.id === draft.restaurantId) ?? appState.restaurant;
@@ -223,6 +229,33 @@ export default function App() {
     deleteRestaurant(id);
     const nextState = refreshState();
     loadRestaurantIntoForm(nextState.restaurant);
+  }
+
+  function handleExportCsv() {
+    setExportOutput(exportCsv(appState));
+    setBackupMessage("CSV export ready.");
+  }
+
+  function handleExportJson() {
+    setExportOutput(exportJsonBackup(appState));
+    setBackupMessage("JSON backup ready.");
+  }
+
+  function handleImportJson() {
+    const result = importJsonBackup(importText, importConfirmed);
+
+    if (!result.ok || !result.state) {
+      setBackupMessage(result.message);
+      return;
+    }
+
+    replaceAppState(result.state);
+    const nextState = refreshState();
+    loadRestaurantIntoForm(nextState.restaurant);
+    setSelectedDate(nextState.shifts[0]?.date ?? selectedDate);
+    setDraft(createEmptyShiftDraft(nextState.shifts[0]?.date ?? selectedDate));
+    setImportConfirmed(false);
+    setBackupMessage(result.message);
   }
 
   function confirmDelete() {
@@ -842,6 +875,55 @@ export default function App() {
             </article>
           );
         })}
+      </section>
+
+      <section className="settings-panel backup-panel" aria-labelledby="backup-title">
+        <div className="section-heading">
+          <h2 id="backup-title">Export and backup</h2>
+          <p>Local only</p>
+        </div>
+        <p className="empty-state">Net income is not the same as cash in hand.</p>
+        <div className="actions">
+          <button className="secondary-button" type="button" onClick={handleExportCsv}>
+            Export CSV
+          </button>
+          <button className="secondary-button" type="button" onClick={handleExportJson}>
+            Export JSON
+          </button>
+        </div>
+        <label className="field">
+          <span>Export output</span>
+          <textarea
+            aria-label="Export output"
+            readOnly
+            rows={7}
+            value={exportOutput}
+          />
+        </label>
+        <label className="field">
+          <span>JSON backup to import</span>
+          <textarea
+            aria-label="JSON backup to import"
+            rows={6}
+            value={importText}
+            onChange={(event) => setImportText(event.target.value)}
+          />
+        </label>
+        <label className="check-field">
+          <input
+            aria-label="Replace local data with this backup"
+            checked={importConfirmed}
+            type="checkbox"
+            onChange={(event) => setImportConfirmed(event.target.checked)}
+          />
+          Replace local data with this backup
+        </label>
+        <button className="primary-button" type="button" onClick={handleImportJson}>
+          Import JSON backup
+        </button>
+        <div className="status-line" aria-live="polite">
+          {backupMessage}
+        </div>
       </section>
 
       {undoShift && (

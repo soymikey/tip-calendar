@@ -222,6 +222,7 @@ h1 {
 
 .field input,
 .field select,
+.field textarea,
 .money-input {
   min-height: 48px;
   border: 1px solid #d2d2d7;
@@ -236,13 +237,15 @@ h1 {
 }
 
 .field input,
-.field select {
+.field select,
+.field textarea {
   width: 100%;
   padding: 11px 13px;
 }
 
 .field input:focus,
 .field select:focus,
+.field textarea:focus,
 .money-input:focus-within {
   border-color: #0066cc;
   outline: 3px solid rgb(0 102 204 / 16%);
@@ -251,6 +254,18 @@ h1 {
 .field select {
   appearance: none;
   background: #fafafc;
+}
+
+.field textarea {
+  resize: vertical;
+  min-height: 120px;
+  line-height: 1.35;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+}
+
+.backup-panel {
+  padding-bottom: 24px;
 }
 
 .restaurant-list {

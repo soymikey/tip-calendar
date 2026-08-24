@@ -163,6 +163,10 @@ export function resetDemoData(): AppState {
   return writeState(createDemoState());
 }
 
+export function replaceAppState(state: AppState): AppState {
+  return saveAppState(state);
+}
+
 export function saveShift(draft: ShiftDraft): ShiftRecord {
   const state = loadAppState();
   const record = toShiftRecord(draft);
