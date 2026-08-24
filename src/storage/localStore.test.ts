@@ -4,6 +4,9 @@ import {
   loadAppState,
   resetDemoData,
   saveAppState,
+  saveShift,
+  deleteShift,
+  restoreShift,
   storageKey,
 } from "./localStore";
 
@@ -49,5 +52,36 @@ describe("local app storage", () => {
     localStorage.setItem(storageKey, "not-json");
 
     expect(loadAppState().restaurant.name).toBe(demoState.restaurant.name);
+  });
+
+  it("migrates milestone one data by adding an empty shifts list", () => {
+    localStorage.setItem(storageKey, JSON.stringify({ ...demoState, shifts: undefined }));
+
+    expect(loadAppState().shifts).toEqual([]);
+  });
+
+  it("creates, edits, deletes, and restores shifts in local storage", () => {
+    const created = saveShift({
+      date: "2026-08-24",
+      hours: 5,
+      unpaidBreak: 0,
+      cashTips: 30,
+      creditTips: 120,
+      otherIncome: 0,
+      manualTipOut: 15,
+      notes: "",
+    });
+
+    expect(loadAppState().shifts).toHaveLength(1);
+
+    const edited = saveShift({ ...created, cashTips: 45 });
+    expect(loadAppState().shifts[0]).toMatchObject({ id: edited.id, cashTips: 45 });
+
+    const deleted = deleteShift(edited.id);
+    expect(deleted?.id).toBe(edited.id);
+    expect(loadAppState().shifts).toEqual([]);
+
+    restoreShift(deleted!);
+    expect(loadAppState().shifts[0].id).toBe(edited.id);
   });
 });

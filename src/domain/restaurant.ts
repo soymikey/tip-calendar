@@ -1,3 +1,5 @@
+import type { ShiftRecord } from "./shift";
+
 export type PayType = "hourly" | "fixedShift";
 
 export type RestaurantSettings = {
@@ -11,6 +13,7 @@ export type AppState = {
   version: 1;
   demoSeededAt: string;
   restaurant: RestaurantSettings;
+  shifts: ShiftRecord[];
 };
 
 export function normalizePayAmount(amount: number): number {

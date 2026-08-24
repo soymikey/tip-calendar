@@ -9,6 +9,7 @@ export const demoState: AppState = {
     payType: "hourly",
     payAmount: 12.5,
   },
+  shifts: [],
 };
 
 export function createDemoState(): AppState {
