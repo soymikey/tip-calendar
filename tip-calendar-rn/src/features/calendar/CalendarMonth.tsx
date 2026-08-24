@@ -114,20 +114,38 @@ export function CalendarMonth({
                       key={cell.localDate}
                       accessibilityRole="button"
                       accessibilityLabel={cell.localDate}
-                      className="h-[52px] flex-1 items-center rounded-lg pt-1"
-                      style={{
-                        borderWidth: 2,
-                        borderColor: selected ? colors.action : "transparent",
+                      className="relative h-[52px] flex-1 items-center justify-center rounded-lg"
+                      style={({ pressed }) => {
+                        const confirmed = selected && pressed
+                        return {
+                          borderWidth: 2,
+                          borderColor: selected && !confirmed ? colors.action : "transparent",
+                          backgroundColor: confirmed ? colors.action : "transparent",
+                        }
                       }}
                       onPress={() => onSelectDate(cell.localDate)}>
-                      <Text className="text-[14px] font-medium text-[#1C1C1E]">{cell.day}</Text>
-                      <View className="h-4 items-center justify-center">
-                        {amount !== undefined ? (
-                          <Text className="text-[11px] font-semibold" style={{ color: colors.income }}>
-                            {formatUsd(amount, { compact: true })}
-                          </Text>
-                        ) : null}
-                      </View>
+                      {({ pressed }) => {
+                        const confirmed = selected && pressed
+                        return (
+                          <>
+                            <Text
+                              className="text-[14px] font-medium"
+                              style={{
+                                color: confirmed ? "#FFFFFF" : "#1C1C1E",
+                                fontWeight: confirmed ? "700" : "500",
+                              }}>
+                              {cell.day}
+                            </Text>
+                            {amount !== undefined ? (
+                              <Text
+                                className="absolute bottom-0.5 text-[11px] font-semibold"
+                                style={{ color: confirmed ? "#FFFFFF" : colors.income }}>
+                                {formatUsd(amount, { compact: true })}
+                              </Text>
+                            ) : null}
+                          </>
+                        )
+                      }}
                     </Pressable>
                   )
                 })}
