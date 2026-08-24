@@ -2,16 +2,15 @@ import type { ReactNode } from "react"
 import { Pressable, Text, View } from "react-native"
 import { SymbolView } from "expo-symbols"
 
-import { buildMonthGrid, toLocalDate, type LocalDate } from "@/domain/calendar"
+import { buildMonthGrid, weekdayLetters, toLocalDate, type LocalDate, type WeekStartsOn } from "@/domain/calendar"
 import { formatUsd } from "@/domain/money"
 import { colors } from "@/theme/colors"
-
-const WEEKDAYS = ["S", "M", "T", "W", "T", "F", "S"] as const
 
 type CalendarMonthProps = {
   year: number
   month: number
   selectedLocalDate: LocalDate
+  weekStartsOn?: WeekStartsOn
   amountsByDate?: Map<LocalDate, number>
   faded?: boolean
   belowHeader?: ReactNode
@@ -43,6 +42,7 @@ export function CalendarMonth({
   year,
   month,
   selectedLocalDate,
+  weekStartsOn = 0,
   amountsByDate,
   faded = false,
   belowHeader,
@@ -50,7 +50,8 @@ export function CalendarMonth({
   onSelectDate,
   onChangeMonth,
 }: CalendarMonthProps) {
-  const grid = buildMonthGrid(year, month, 0)
+  const grid = buildMonthGrid(year, month, weekStartsOn)
+  const weekdayLabels = weekdayLetters(weekStartsOn)
 
   function go(delta: number) {
     const next = shiftMonth(year, month, delta)
@@ -93,7 +94,7 @@ export function CalendarMonth({
 
       <View className="px-5 py-3">
         <View className="flex-row">
-          {WEEKDAYS.map((label, index) => (
+          {weekdayLabels.map((label, index) => (
             <View key={`${label}-${index}`} className="flex-1 items-center py-1">
               <Text className="text-[12px] font-semibold text-[#8E8E93]">{label}</Text>
             </View>
