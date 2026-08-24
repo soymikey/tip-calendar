@@ -1,7 +1,9 @@
-import { Tabs } from "expo-router"
+import { Redirect, Tabs } from "expo-router"
 import { SymbolView } from "expo-symbols"
 import { View, type ColorValue } from "react-native"
 
+import { useAppState } from "@/state/AppStateContext"
+import { needsOnboarding } from "@/state/session"
 import { colors } from "@/theme/colors"
 
 function TabIcon({
@@ -23,6 +25,11 @@ function TabIcon({
 }
 
 export default function TabLayout() {
+  const { state } = useAppState()
+  if (needsOnboarding(state)) {
+    return <Redirect href="/onboarding" />
+  }
+
   return (
     <Tabs
       screenOptions={{
