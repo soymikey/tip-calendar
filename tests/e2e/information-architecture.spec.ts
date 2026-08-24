@@ -11,6 +11,7 @@ test("Calendar is the default home with only Calendar and My bottom tabs", async
   await expect(page.getByRole("tab", { name: "Calculator" })).toHaveCount(0);
 
   await expect(page.getByRole("heading", { name: /August 2026/ })).toBeVisible();
+  await expect(page.getByText("Tips Calendar")).toBeVisible();
   await expect(page.getByRole("button", { name: "Previous month" })).toHaveText("");
   await expect(page.getByRole("button", { name: "Next month" })).toHaveText("");
   await expect(page.getByRole("heading", { name: "Restaurant settings" })).toHaveCount(0);
@@ -77,11 +78,12 @@ test("empty calendar dates open a new Record Shift form directly", async ({ page
   await page.getByRole("button", { name: "Save shift" }).click();
 
   await expect(page.getByRole("dialog", { name: `Day detail ${emptyDate}` })).toBeVisible();
+  await expect(page.getByTestId("day-detail-scrim")).toBeVisible();
   await expect(page.getByRole("heading", { name: "Record Shift" })).toHaveCount(0);
   await expect(page.getByLabel("Day detail").getByText("Net income $262.50")).toBeVisible();
 });
 
-test("recorded calendar dates open the Day Details sheet with edit and add actions", async ({ page }) => {
+test("recorded calendar dates open a modal Day Details sheet that can close", async ({ page }) => {
   await page.goto("/");
 
   const recordedDate = "2026-08-11";
@@ -89,6 +91,8 @@ test("recorded calendar dates open the Day Details sheet with edit and add actio
   await page.getByLabel("Work hours").fill("4");
   await page.getByLabel("Cash tips").fill("30");
   await page.getByRole("button", { name: "Save shift" }).click();
+  await expect(page.getByRole("dialog", { name: `Day detail ${recordedDate}` })).toBeVisible();
+  await page.keyboard.press("Escape");
 
   await page.getByRole("button", { name: "Previous month" }).click();
   await page.getByRole("button", { name: "Next month" }).click();
@@ -96,11 +100,25 @@ test("recorded calendar dates open the Day Details sheet with edit and add actio
 
   const daySheet = page.getByRole("dialog", { name: `Day detail ${recordedDate}` });
   await expect(daySheet).toBeVisible();
+  await expect(daySheet).toHaveAttribute("aria-modal", "true");
+  await expect(daySheet).toBeFocused();
+  await expect(page.getByTestId("day-detail-scrim")).toBeVisible();
+  await expect(page.locator(".sheet-handle")).toBeVisible();
   await expect(daySheet.getByText("Day net $80.00")).toBeVisible();
   await expect(daySheet.getByText("Net income $80.00")).toBeVisible();
   await expect(daySheet.getByRole("button", { name: /Edit shift/ })).toBeVisible();
   await expect(daySheet.getByRole("button", { name: "Record Shift" })).toBeVisible();
 
+  await page.keyboard.press("Escape");
+  await expect(daySheet).toHaveCount(0);
+  await expect(page.getByTestId("day-detail-scrim")).toHaveCount(0);
+
+  await page.getByRole("button", { name: `Select ${recordedDate}` }).click();
+  await expect(daySheet).toBeVisible();
+  await page.getByTestId("day-detail-scrim").click({ position: { x: 10, y: 10 } });
+  await expect(daySheet).toHaveCount(0);
+
+  await page.getByRole("button", { name: `Select ${recordedDate}` }).click();
   await daySheet.getByRole("button", { name: /Edit shift/ }).click();
   await expect(page.getByRole("heading", { name: "Record Shift" })).toBeVisible();
   await expect(page.getByLabel("Cash tips")).toHaveValue("30");

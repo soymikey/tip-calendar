@@ -1,4 +1,4 @@
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import "./styles.css";
 import {
   buildMonthDays,
@@ -69,6 +69,7 @@ export default function App() {
   const [deleteTarget, setDeleteTarget] = useState<ShiftRecord | null>(null);
   const [undoShift, setUndoShift] = useState<ShiftRecord | null>(null);
   const [selectedDate, setSelectedDate] = useState(draft.date);
+  const [isDaySheetOpen, setIsDaySheetOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<"calendar" | "my">("calendar");
   const [screen, setScreen] = useState<"home" | "shift">("home");
   const [myView, setMyView] = useState<MyView>("menu");
@@ -77,6 +78,7 @@ export default function App() {
   const [importText, setImportText] = useState("");
   const [importConfirmed, setImportConfirmed] = useState(false);
   const [backupMessage, setBackupMessage] = useState("No account or cloud sync. Data stays in this browser.");
+  const daySheetRef = useRef<HTMLElement | null>(null);
 
   const selectedRestaurant =
     appState.restaurants.find((restaurant) => restaurant.id === draft.restaurantId) ?? appState.restaurant;
@@ -117,6 +119,21 @@ export default function App() {
   const weekSummary = summarizePeriod(appState.shifts, payForShift, selectedDate, "week");
   const monthSummary = summarizePeriod(appState.shifts, payForShift, selectedDate, "month");
   const monthDays = buildMonthDays(selectedDate);
+
+  useEffect(() => {
+    if (!isDaySheetOpen) {
+      return;
+    }
+
+    daySheetRef.current?.focus();
+    function closeOnEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setIsDaySheetOpen(false);
+      }
+    }
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
+  }, [isDaySheetOpen, selectedDate]);
 
   function refreshState() {
     const nextState = loadAppState();
@@ -190,12 +207,14 @@ export default function App() {
     setShowDetails(false);
     setShowMore(false);
     setStatus("idle");
+    setIsDaySheetOpen(false);
     setScreen("shift");
   }
 
   function handleCalendarDateSelect(date: string) {
     if (dateSummaries[date]?.shiftCount) {
       setSelectedDate(date);
+      setIsDaySheetOpen(true);
       setScreen("home");
       setActiveTab("calendar");
       setStatus("idle");
@@ -222,6 +241,7 @@ export default function App() {
     setShowDetails(false);
     setScreen("home");
     setActiveTab("calendar");
+    setIsDaySheetOpen(true);
     setStatus("shiftSaved");
   }
 
@@ -230,6 +250,7 @@ export default function App() {
     setSelectedDate(shift.date);
     setShowMore(Boolean(shift.useClock || shift.unpaidBreak || shift.notes));
     setShowDetails(false);
+    setIsDaySheetOpen(false);
     setScreen("shift");
     setStatus("idle");
   }
@@ -283,6 +304,7 @@ export default function App() {
     setImportConfirmed(false);
     setScreen("home");
     setActiveTab("calendar");
+    setIsDaySheetOpen(Boolean(nextState.shifts[0]));
     setBackupMessage(result.message);
   }
 
@@ -295,7 +317,8 @@ export default function App() {
     setDeleteTarget(null);
     if (deleted) {
       setUndoShift(deleted);
-      refreshState();
+      const nextState = refreshState();
+      setIsDaySheetOpen(nextState.shifts.some((shift) => shift.date === selectedDate));
       setStatus("shiftDeleted");
       window.setTimeout(() => setUndoShift(null), 6000);
     }
@@ -309,6 +332,8 @@ export default function App() {
     restoreShift(undoShift);
     setUndoShift(null);
     refreshState();
+    setSelectedDate(undoShift.date);
+    setIsDaySheetOpen(true);
     setStatus("shiftRestored");
   }
 
@@ -329,6 +354,7 @@ export default function App() {
       {screen === "home" && activeTab === "calendar" && (
         <>
       <section className="settings-panel calendar-panel" aria-labelledby="calendar-title">
+        <p className="calendar-brand">Tips Calendar</p>
         <div className="calendar-heading">
           <button type="button" aria-label="Previous month" onClick={() => setSelectedDate(shiftMonth(selectedDate, -1))}>
             <svg aria-hidden="true" viewBox="0 0 24 24">
@@ -392,19 +418,28 @@ export default function App() {
         </div>
       </section>
 
-      {selectedSummary.shiftCount > 0 && (
+      {selectedSummary.shiftCount > 0 && isDaySheetOpen && (
+        <>
+        <div
+          aria-hidden="true"
+          className="day-detail-scrim"
+          data-testid="day-detail-scrim"
+          onClick={() => setIsDaySheetOpen(false)}
+        />
         <section
-          className="settings-panel day-detail"
+          className="day-detail-sheet"
           role="dialog"
-          aria-modal="false"
+          aria-modal="true"
           aria-label={`Day detail ${selectedDate}`}
+          ref={daySheetRef}
+          tabIndex={-1}
         >
-          <div className="section-heading">
-            <div>
-              <h2 id="day-detail-title">Day detail</h2>
-              <p data-testid="selected-date">{selectedDate}</p>
-            </div>
-            <p>{selectedSummary.shiftCount} shifts</p>
+          <div className="sheet-handle" aria-hidden="true" />
+          <div className="day-sheet-heading">
+            <p data-testid="selected-date">{selectedDate}</p>
+            <h2 id="day-detail-title">Day Details</h2>
+            <strong>{money(selectedSummary.netIncome)}</strong>
+            <span>{selectedSummary.shiftCount} shifts</span>
           </div>
           <div className="day-totals">
             <p>Day net {money(selectedSummary.netIncome)}</p>
@@ -453,6 +488,7 @@ export default function App() {
             );
           })}
         </section>
+        </>
       )}
         </>
       )}

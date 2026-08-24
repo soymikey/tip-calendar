@@ -8,6 +8,7 @@ test("mobile user can export CSV and JSON, then import JSON only after confirmin
   await page.getByLabel("Cash tips").fill("40");
   await page.getByLabel("Credit card tips").fill("160");
   await page.getByRole("button", { name: "Save shift" }).click();
+  await page.keyboard.press("Escape");
 
   await page.getByRole("tab", { name: "My" }).click();
   await page.getByRole("button", { name: "Data & backup" }).click();

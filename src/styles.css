@@ -90,6 +90,14 @@ h1 {
   background: transparent;
 }
 
+.calendar-brand {
+  margin: 0;
+  color: #0066cc;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
 .calendar-heading {
   display: grid;
   grid-template-columns: 44px 1fr 44px;
@@ -216,13 +224,69 @@ h1 {
   color: #ffffff;
 }
 
-.day-detail {
+.day-detail-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 6;
+  background: rgb(0 0 0 / 36%);
+}
+
+.day-detail-sheet {
+  position: fixed;
+  left: 50%;
+  bottom: 0;
+  z-index: 7;
+  display: grid;
   gap: 14px;
-  position: sticky;
-  bottom: 72px;
-  z-index: 2;
-  border-bottom-right-radius: 0;
-  border-bottom-left-radius: 0;
+  width: min(100%, 430px);
+  max-height: calc(100vh - 72px);
+  overflow-y: auto;
+  border: 0;
+  border-top-left-radius: 24px;
+  border-top-right-radius: 24px;
+  background: #ffffff;
+  padding: 10px 16px calc(env(safe-area-inset-bottom) + 20px);
+  transform: translateX(-50%);
+}
+
+.day-detail-sheet:focus {
+  outline: 0;
+}
+
+.sheet-handle {
+  justify-self: center;
+  width: 38px;
+  height: 5px;
+  border-radius: 999px;
+  background: #d2d2d7;
+}
+
+.day-sheet-heading {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  text-align: center;
+}
+
+.day-sheet-heading p,
+.day-sheet-heading span {
+  margin: 0;
+  color: #86868b;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.day-sheet-heading h2 {
+  margin: 0;
+  font-size: 22px;
+  line-height: 1.15;
+}
+
+.day-sheet-heading strong {
+  color: #1d1d1f;
+  font-size: 34px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
 }
 
 .day-totals {
@@ -717,7 +781,7 @@ h1 {
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 4;
+  z-index: 8;
   display: grid;
   place-items: end center;
   padding: 16px;
