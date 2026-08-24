@@ -1,5 +1,13 @@
 import { FormEvent, useMemo, useState } from "react";
 import "./styles.css";
+import {
+  buildMonthDays,
+  formatMonth,
+  shiftMonth,
+  summarizePeriod,
+  summarizeShifts,
+  summarizeShiftsByDate,
+} from "./domain/calendar";
 import type { AppState, PayType } from "./domain/restaurant";
 import { formatPaySummary, normalizePayAmount } from "./domain/restaurant";
 import type { ShiftDraft, ShiftRecord } from "./domain/shift";
@@ -39,6 +47,7 @@ export default function App() {
   const [showDetails, setShowDetails] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<ShiftRecord | null>(null);
   const [undoShift, setUndoShift] = useState<ShiftRecord | null>(null);
+  const [selectedDate, setSelectedDate] = useState(draft.date);
 
   const currentRestaurant = {
     ...appState.restaurant,
@@ -65,6 +74,13 @@ export default function App() {
     () => formatPaySummary({ payType, payAmount: parseAmount(payAmount) }),
     [payAmount, payType],
   );
+  const paySettings = { payType: appState.restaurant.payType, payAmount: appState.restaurant.payAmount };
+  const dateSummaries = summarizeShiftsByDate(appState.shifts, paySettings);
+  const selectedShifts = appState.shifts.filter((shift) => shift.date === selectedDate);
+  const selectedSummary = summarizeShifts(selectedShifts, paySettings);
+  const weekSummary = summarizePeriod(appState.shifts, paySettings, selectedDate, "week");
+  const monthSummary = summarizePeriod(appState.shifts, paySettings, selectedDate, "month");
+  const monthDays = buildMonthDays(selectedDate);
 
   function refreshState() {
     const nextState = loadAppState();
@@ -108,6 +124,14 @@ export default function App() {
     setStatus("reset");
   }
 
+  function startShiftForDate(date: string) {
+    setSelectedDate(date);
+    setDraft(createEmptyShiftDraft(date));
+    setShowDetails(false);
+    setShowMore(false);
+    setStatus("idle");
+  }
+
   function handleShiftSave(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -117,13 +141,15 @@ export default function App() {
 
     saveShift(draft);
     refreshState();
-    setDraft(createEmptyShiftDraft());
+    setSelectedDate(draft.date);
+    setDraft(createEmptyShiftDraft(draft.date));
     setShowDetails(false);
     setStatus("shiftSaved");
   }
 
   function handleEditShift(shift: ShiftRecord) {
     setDraft({ ...shift });
+    setSelectedDate(shift.date);
     setShowMore(Boolean(shift.useClock || shift.unpaidBreak || shift.notes));
     setShowDetails(false);
     setStatus("idle");
@@ -161,10 +187,130 @@ export default function App() {
     <main className="app-shell">
       <section className="hero-panel" aria-labelledby="app-title">
         <p className="eyebrow">Tip Calendar</p>
-        <h1 id="app-title">Default restaurant</h1>
+        <h1 id="app-title">Tip Calendar</h1>
         <p className="intro">
           Keep defaults local, then record a single-restaurant shift without an account.
         </p>
+      </section>
+
+      <section className="settings-panel calendar-panel" aria-labelledby="calendar-title">
+        <div className="section-heading">
+          <h2 id="calendar-title">{formatMonth(selectedDate)}</h2>
+          <div className="month-actions">
+            <button type="button" onClick={() => setSelectedDate(shiftMonth(selectedDate, -1))}>
+              Previous month
+            </button>
+            <button type="button" onClick={() => setSelectedDate(shiftMonth(selectedDate, 1))}>
+              Next month
+            </button>
+          </div>
+        </div>
+
+        <div className="summary-strip" aria-label="Income summaries">
+          <div>
+            <span>Week net</span>
+            <strong>{money(weekSummary.netIncome)}</strong>
+            <small>{weekSummary.shiftCount} shifts</small>
+          </div>
+          <div>
+            <span>Month net</span>
+            <strong>{money(monthSummary.netIncome)}</strong>
+            <small>{monthSummary.effectiveHours} hrs</small>
+          </div>
+          <div>
+            <span>Avg hourly</span>
+            <strong>{monthSummary.averageActualHourly === null ? "$0.00/hr" : `${money(monthSummary.averageActualHourly)}/hr`}</strong>
+            <small>{money(monthSummary.totalTips)} tips</small>
+          </div>
+        </div>
+
+        <div className="weekday-grid" aria-hidden="true">
+          {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
+            <span key={day}>{day}</span>
+          ))}
+        </div>
+        <div className="calendar-grid">
+          {monthDays.map((day) => {
+            const summary = dateSummaries[day.date];
+            return (
+              <button
+                aria-pressed={day.date === selectedDate}
+                className={[
+                  "calendar-day",
+                  day.isCurrentMonth ? "" : "outside-month",
+                  day.date === selectedDate ? "selected-day" : "",
+                ].join(" ")}
+                key={day.date}
+                type="button"
+                onClick={() => setSelectedDate(day.date)}
+                aria-label={`Select ${day.date}`}
+              >
+                <span>{day.dayNumber}</span>
+                {summary && (
+                  <small data-testid={`calendar-net-${day.date}`}>{money(summary.netIncome)}</small>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
+      <section className="settings-panel day-detail" aria-labelledby="day-detail-title">
+        <div className="section-heading">
+          <div>
+            <h2 id="day-detail-title">Day detail</h2>
+            <p data-testid="selected-date">{selectedDate}</p>
+          </div>
+          <p>{selectedSummary.shiftCount} shifts</p>
+        </div>
+        {selectedSummary.shiftCount > 0 ? (
+          <div className="day-totals">
+            <p>Day net {money(selectedSummary.netIncome)}</p>
+            <p>Week net {money(weekSummary.netIncome)}</p>
+            <p>Month net {money(monthSummary.netIncome)}</p>
+            <p>Total tips {money(selectedSummary.totalTips)}</p>
+            <p>Average actual hourly {selectedSummary.averageActualHourly === null ? "$0.00/hr" : `${money(selectedSummary.averageActualHourly)}/hr`}</p>
+            <p>Total effective hours {selectedSummary.effectiveHours}</p>
+          </div>
+        ) : (
+          <p className="empty-state">This day has no shifts yet.</p>
+        )}
+        <button className="primary-button" type="button" onClick={() => startShiftForDate(selectedDate)}>
+          Record a shift
+        </button>
+        {selectedShifts.map((shift) => {
+          const itemCalculation = calculateShift({
+            payType: appState.restaurant.payType,
+            payAmount: appState.restaurant.payAmount,
+            hours: shift.hours,
+            useClock: shift.useClock,
+            clockIn: shift.clockIn,
+            clockOut: shift.clockOut,
+            unpaidBreak: shift.unpaidBreak,
+            cashTips: shift.cashTips,
+            creditTips: shift.creditTips,
+            otherIncome: shift.otherIncome,
+            manualTipOut: shift.manualTipOut,
+          });
+
+          return (
+            <article className="shift-card" key={shift.id}>
+              <div>
+                <h3>{shift.date}</h3>
+                <p>Net income {money(itemCalculation.netIncome)}</p>
+                {itemCalculation.isCrossMidnight && <p>Cross-midnight shift</p>}
+              </div>
+              <div className="card-actions">
+                <button type="button" onClick={() => handleEditShift(shift)}>
+                  Edit shift {shift.date}
+                </button>
+                <button type="button" onClick={() => setDeleteTarget(shift)}>
+                  Delete shift {shift.date}
+                </button>
+              </div>
+            </article>
+          );
+        })}
       </section>
 
       <form className="settings-panel" onSubmit={saveSettings}>

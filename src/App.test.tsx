@@ -59,7 +59,7 @@ describe("App", () => {
 
     expect(screen.getByText("Shift saved locally.")).toBeInTheDocument();
     expect(loadAppState().shifts).toHaveLength(1);
-    expect(screen.getByText("Net income $285.00")).toBeInTheDocument();
+    expect(screen.getAllByText("Net income $285.00").length).toBeGreaterThan(0);
   });
 
   it("edits, deletes, and restores a saved shift", async () => {
@@ -69,14 +69,14 @@ describe("App", () => {
     await user.type(screen.getByLabelText("Work hours"), "4");
     await user.type(screen.getByLabelText("Cash tips"), "20");
     await user.click(screen.getByRole("button", { name: "Save shift" }));
-    await user.click(screen.getByRole("button", { name: /Edit shift/ }));
+    await user.click(screen.getAllByRole("button", { name: /Edit shift/ })[0]);
     await user.clear(screen.getByLabelText("Cash tips"));
     await user.type(screen.getByLabelText("Cash tips"), "40");
     await user.click(screen.getByRole("button", { name: "Update shift" }));
 
     expect(loadAppState().shifts[0].cashTips).toBe(40);
 
-    await user.click(screen.getByRole("button", { name: /Delete shift/ }));
+    await user.click(screen.getAllByRole("button", { name: /Delete shift/ })[0]);
     await user.click(screen.getByRole("button", { name: "Delete" }));
 
     expect(loadAppState().shifts).toHaveLength(0);

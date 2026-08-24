@@ -79,6 +79,118 @@ h1 {
   margin-top: 0;
 }
 
+.calendar-panel {
+  gap: 14px;
+}
+
+.month-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.month-actions button {
+  min-height: 34px;
+  border: 1px solid #d2d2d7;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #0066cc;
+  padding: 6px 10px;
+  font-size: 12px;
+}
+
+.summary-strip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.summary-strip div {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  border-radius: 11px;
+  padding: 10px;
+  background: #f5f5f7;
+}
+
+.summary-strip span,
+.summary-strip small,
+.weekday-grid {
+  color: #515154;
+  font-size: 12px;
+}
+
+.summary-strip strong {
+  overflow-wrap: anywhere;
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+}
+
+.weekday-grid,
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 5px;
+}
+
+.weekday-grid span {
+  text-align: center;
+}
+
+.calendar-day {
+  display: grid;
+  align-content: start;
+  gap: 2px;
+  min-height: 52px;
+  border: 1px solid #e5e5ea;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #1d1d1f;
+  padding: 6px 3px;
+  cursor: pointer;
+}
+
+.calendar-day span {
+  font-size: 13px;
+}
+
+.calendar-day small {
+  color: #0066cc;
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.outside-month {
+  color: #86868b;
+  background: #fafafc;
+}
+
+.selected-day {
+  border-color: #0066cc;
+  outline: 2px solid rgb(0 102 204 / 16%);
+}
+
+.day-detail {
+  gap: 14px;
+}
+
+.day-totals {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.day-totals p {
+  margin-bottom: 0;
+  border-radius: 11px;
+  padding: 10px;
+  background: #f5f5f7;
+  color: #515154;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
 .section-heading {
   display: flex;
   justify-content: space-between;

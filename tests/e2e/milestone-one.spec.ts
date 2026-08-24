@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 test("mobile user can persist restaurant settings across refresh and reset demo data", async ({ page }) => {
   await page.goto("/");
 
-  await expect(page.getByRole("heading", { name: "Default restaurant" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Restaurant settings" })).toBeVisible();
   await page.getByLabel("Restaurant name").fill("Blue Plate Diner");
   await page.getByLabel("Fixed pay per shift").check();
   await page.getByLabel("Pay amount").fill("95");

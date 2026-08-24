@@ -11,22 +11,22 @@ test("mobile user can create, edit, delete, undo, and refresh a shift", async ({
   await expect(page.getByText("$285.00")).toBeVisible();
   await page.getByRole("button", { name: "Save shift" }).click();
 
-  await expect(page.getByText("Net income $285.00")).toBeVisible();
+  await expect(page.getByLabel("Day detail").getByText("Net income $285.00")).toBeVisible();
 
   await page.reload();
-  await expect(page.getByText("Net income $285.00")).toBeVisible();
+  await expect(page.getByLabel("Day detail").getByText("Net income $285.00")).toBeVisible();
 
-  await page.getByRole("button", { name: /Edit shift/ }).click();
+  await page.getByLabel("Day detail").getByRole("button", { name: /Edit shift/ }).click();
   await page.getByLabel("Cash tips").fill("55");
   await page.getByRole("button", { name: "Update shift" }).click();
-  await expect(page.getByText("Net income $295.00")).toBeVisible();
+  await expect(page.getByLabel("Day detail").getByText("Net income $295.00")).toBeVisible();
 
-  await page.getByRole("button", { name: /Delete shift/ }).click();
+  await page.getByLabel("Day detail").getByRole("button", { name: /Delete shift/ }).click();
   await page.getByRole("button", { name: "Delete", exact: true }).click();
   await expect(page.getByText("No shifts recorded yet.")).toBeVisible();
 
   await page.getByRole("button", { name: "Undo delete" }).click();
-  await expect(page.getByText("Net income $295.00")).toBeVisible();
+  await expect(page.getByLabel("Day detail").getByText("Net income $295.00")).toBeVisible();
 });
 
 test("mobile user sees advanced clock and validation states", async ({ page }) => {
