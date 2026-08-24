@@ -1,5 +1,5 @@
 import { createRestaurant } from "./restaurant"
-import { calculateHoursFromClock, calculateShiftIncome } from "./shift"
+import { calculateHoursFromClock, calculateShiftIncome, createShift } from "./shift"
 
 const hourlyRestaurant = createRestaurant({
   name: "Bluebird",
@@ -126,5 +126,35 @@ describe("calculateShiftIncome", () => {
     })
     expect(income.tipOutCents).toBe(250)
     expect(income.netIncomeCents).toBe(9750)
+  })
+})
+
+describe("createShift", () => {
+  it("stores a local date and money in cents", () => {
+    const shift = createShift({
+      localDate: "2026-08-21",
+      restaurantId: "rst_1",
+      hours: 6.5,
+      cashTipsCents: 8500,
+      cardTipsCents: 12200,
+      tipOutSnapshot: { rule: { type: "none" }, amountCents: 0 },
+      now: "2026-08-21T20:00:00.000Z",
+    })
+    expect(shift.id).toBe("sft_2026-08-21T20:00:00.000Z")
+    expect(shift.localDate).toBe("2026-08-21")
+    expect(shift.unpaidBreakHours).toBe(0)
+    expect(shift.overnight).toBe(false)
+    expect(shift.otherIncomeCents).toBe(0)
+  })
+
+  it("rejects a non-local date", () => {
+    expect(() =>
+      createShift({
+        localDate: "2026/08/21",
+        restaurantId: "rst_1",
+        hours: 1,
+        tipOutSnapshot: { rule: { type: "none" }, amountCents: 0 },
+      }),
+    ).toThrow("Date must use YYYY-MM-DD")
   })
 })
