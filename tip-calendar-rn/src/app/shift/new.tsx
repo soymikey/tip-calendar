@@ -1,6 +1,7 @@
 import { Redirect, router, useLocalSearchParams } from "expo-router"
 import { useState } from "react"
 
+import { NoRestaurantShift } from "@/features/shift/NoRestaurantShift"
 import { RecordShiftForm } from "@/features/shift/RecordShiftForm"
 import { toShift } from "@/features/shift/shiftDraft"
 import { useAppState } from "@/state/AppStateContext"
@@ -10,18 +11,33 @@ export default function NewShiftScreen() {
   const [saving, setSaving] = useState(false)
   const rawDate = useLocalSearchParams<{ date?: string | string[] }>().date
   const localDate = Array.isArray(rawDate) ? rawDate[0] : rawDate
+  const defaultId = state.restaurants.find((item) => item.isDefault)?.id ?? state.restaurants[0]?.id
+  const [restaurantId, setRestaurantId] = useState(defaultId)
   const restaurant =
-    state.restaurants.find((item) => item.isDefault) ?? state.restaurants[0]
+    state.restaurants.find((item) => item.id === restaurantId) ?? state.restaurants[0]
 
-  if (!localDate || !restaurant) {
+  if (!localDate) {
     return <Redirect href="/(tabs)" />
+  }
+
+  if (!restaurant) {
+    return (
+      <NoRestaurantShift
+        localDate={localDate}
+        onCancel={() => router.back()}
+        onAddRestaurant={() => router.push("/onboarding")}
+      />
+    )
   }
 
   return (
     <RecordShiftForm
       localDate={localDate}
       restaurant={restaurant}
+      restaurants={state.restaurants}
       saving={saving}
+      timeFormat={state.preferences.timeFormat}
+      onRestaurantChange={(next) => setRestaurantId(next.id)}
       onCancel={() => router.back()}
       onSave={async (draft) => {
         if (saving) {

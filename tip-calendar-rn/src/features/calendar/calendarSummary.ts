@@ -15,8 +15,15 @@ function netForShift(shift: Shift, restaurants: Restaurant[]): Cents {
   if (!restaurant) {
     return 0
   }
+  const paid = shift.paySnapshot
+    ? {
+        ...restaurant,
+        payType: shift.paySnapshot.payType,
+        payAmountCents: shift.paySnapshot.payAmountCents,
+      }
+    : restaurant
   return calculateShiftIncome({
-    restaurant,
+    restaurant: paid,
     hours: shift.hours,
     unpaidBreakHours: shift.unpaidBreakHours,
     cashTipsCents: shift.cashTipsCents,
