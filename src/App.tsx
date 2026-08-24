@@ -169,7 +169,6 @@ export default function App() {
   const dateSummaries = summarizeShiftsByDate(appState.shifts, payForShift);
   const selectedShifts = appState.shifts.filter((shift) => shift.date === selectedDate);
   const selectedSummary = summarizeShifts(selectedShifts, payForShift);
-  const weekSummary = summarizePeriod(appState.shifts, payForShift, selectedDate, "week");
   const monthSummary = summarizePeriod(appState.shifts, payForShift, selectedDate, "month");
   const monthDays = buildMonthDays(selectedDate);
 
@@ -407,37 +406,27 @@ export default function App() {
       {screen === "home" && activeTab === "calendar" && (
         <>
       <section className="settings-panel calendar-panel" aria-labelledby="calendar-title">
-        <p className="calendar-brand">Tips Calendar</p>
+        <h1 className="calendar-brand">Tips Calendar</h1>
         <div className="calendar-heading">
-          <button type="button" aria-label="Previous month" onClick={() => setSelectedDate(shiftMonth(selectedDate, -1))}>
-            <svg aria-hidden="true" viewBox="0 0 24 24">
-              <path d="M15 18 9 12l6-6" />
-            </svg>
-          </button>
           <h2 id="calendar-title">{formatMonth(selectedDate)}</h2>
-          <button type="button" aria-label="Next month" onClick={() => setSelectedDate(shiftMonth(selectedDate, 1))}>
-            <svg aria-hidden="true" viewBox="0 0 24 24">
-              <path d="m9 18 6-6-6-6" />
-            </svg>
-          </button>
+          <div className="calendar-month-actions">
+            <button type="button" aria-label="Previous month" onClick={() => setSelectedDate(shiftMonth(selectedDate, -1))}>
+              <svg aria-hidden="true" viewBox="0 0 24 24">
+                <path d="M15 18 9 12l6-6" />
+              </svg>
+            </button>
+            <button type="button" aria-label="Next month" onClick={() => setSelectedDate(shiftMonth(selectedDate, 1))}>
+              <svg aria-hidden="true" viewBox="0 0 24 24">
+                <path d="m9 18 6-6-6-6" />
+              </svg>
+            </button>
+          </div>
         </div>
 
-        <div className="summary-strip" aria-label="Income summaries">
-          <div>
-            <span>Week net</span>
-            <strong>{money(weekSummary.netIncome)}</strong>
-            <small>{weekSummary.shiftCount} shifts</small>
-          </div>
-          <div>
-            <span>Month net</span>
-            <strong>{money(monthSummary.netIncome)}</strong>
-            <small>{monthSummary.effectiveHours} hrs</small>
-          </div>
-          <div>
-            <span>Avg hourly</span>
-            <strong>{monthSummary.averageActualHourly === null ? "$0.00/hr" : `${money(monthSummary.averageActualHourly)}/hr`}</strong>
-            <small>{money(monthSummary.totalTips)} tips</small>
-          </div>
+        <div className="monthly-income-card" aria-label="Monthly Net Income">
+          <span>Monthly Net Income</span>
+          <strong>{money(monthSummary.netIncome)}</strong>
+          <small>{monthSummary.shiftCount} shifts</small>
         </div>
 
         <div className="weekday-grid" aria-hidden="true">

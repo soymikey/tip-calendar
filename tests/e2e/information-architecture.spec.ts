@@ -11,7 +11,7 @@ test("Calendar is the default home with only Calendar and My bottom tabs", async
   await expect(page.getByRole("tab", { name: "Calculator" })).toHaveCount(0);
 
   await expect(page.getByRole("heading", { name: /August 2026/ })).toBeVisible();
-  await expect(page.getByText("Tips Calendar")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Tips Calendar" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Previous month" })).toHaveText("");
   await expect(page.getByRole("button", { name: "Next month" })).toHaveText("");
   await expect(page.getByRole("heading", { name: "Restaurant settings" })).toHaveCount(0);
@@ -20,10 +20,91 @@ test("Calendar is the default home with only Calendar and My bottom tabs", async
 });
 
 test("Calendar home uses white canvas and Figma-style selected date treatment", async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem(
+      "tip-calendar:v1",
+      JSON.stringify({
+        version: 1,
+        demoSeededAt: "2026-08-24T00:00:00.000Z",
+        restaurant: {
+          id: "default",
+          name: "Sunny Table Bistro",
+          payType: "hourly",
+          payAmount: 12.5,
+          creditTipPayout: "sameDay",
+          defaultTipOut: { type: "none" },
+        },
+        defaultRestaurantId: "default",
+        restaurants: [
+          {
+            id: "default",
+            name: "Sunny Table Bistro",
+            payType: "hourly",
+            payAmount: 12.5,
+            creditTipPayout: "sameDay",
+            defaultTipOut: { type: "none" },
+          },
+        ],
+        shifts: [
+          {
+            id: "visual-calendar-shift",
+            date: "2026-08-23",
+            restaurantId: "default",
+            hours: 4,
+            useClock: false,
+            clockIn: "",
+            clockOut: "",
+            unpaidBreak: 0,
+            cashTips: 40,
+            creditTips: 20,
+            otherIncome: 0,
+            manualTipOut: 10,
+            salesAmount: 0,
+            tipOutRuleSnapshot: { type: "none" },
+            notes: "",
+            createdAt: "2026-08-24T18:00:00.000Z",
+            updatedAt: "2026-08-24T18:00:00.000Z",
+          },
+        ],
+      }),
+    );
+  });
   await page.goto("/");
 
   const bodyBackground = await page.locator("body").evaluate((node) => getComputedStyle(node).backgroundColor);
   const appShell = page.locator("main");
+  const title = page.getByRole("heading", { name: "Tips Calendar" });
+  const monthHeading = page.getByRole("heading", { name: "August 2026" });
+  const titleStyle = await title.evaluate((node) => {
+    const style = getComputedStyle(node);
+    const rect = node.getBoundingClientRect();
+    return { color: style.color, fontSize: parseFloat(style.fontSize), fontWeight: style.fontWeight, left: rect.left };
+  });
+  const monthStyle = await monthHeading.evaluate((node) => {
+    const style = getComputedStyle(node);
+    const rect = node.getBoundingClientRect();
+    return { color: style.color, fontSize: parseFloat(style.fontSize), fontWeight: style.fontWeight, left: rect.left };
+  });
+  const nextButtonLeft = await page
+    .getByRole("button", { name: "Next month" })
+    .evaluate((node) => node.getBoundingClientRect().left);
+  const incomeCard = page.locator(".monthly-income-card");
+  const incomeCardStyle = await incomeCard.evaluate((node) => {
+    const style = getComputedStyle(node);
+    return {
+      background: style.backgroundColor,
+      borderRadius: parseFloat(style.borderRadius),
+      display: style.display,
+    };
+  });
+  const incomeCardRows = await incomeCard.evaluate((node) =>
+    Array.from(node.children).map((child) => ({
+      text: child.textContent?.trim(),
+      top: child.getBoundingClientRect().top,
+      color: getComputedStyle(child).color,
+      fontSize: parseFloat(getComputedStyle(child).fontSize),
+    })),
+  );
   const appBackground = await appShell.evaluate((node) => getComputedStyle(node).backgroundColor);
   const appPaddingTop = await appShell.evaluate((node) => parseFloat(getComputedStyle(node).paddingTop));
   const appAlignContent = await appShell.evaluate((node) => getComputedStyle(node).alignContent);
@@ -39,9 +120,15 @@ test("Calendar home uses white canvas and Figma-style selected date treatment", 
   const selectedDay = page.locator(".calendar-day[aria-pressed='true']").first();
   const selectedBackground = await selectedDay.evaluate((node) => getComputedStyle(node).backgroundColor);
   const selectedColor = await selectedDay.evaluate((node) => getComputedStyle(node).color);
+  const selectedRadius = await selectedDay.evaluate((node) => parseFloat(getComputedStyle(node).borderRadius));
+  const selectedHeight = await selectedDay.evaluate((node) => node.getBoundingClientRect().height);
   const defaultBorder = await page
     .getByRole("button", { name: "Select 2026-08-10" })
     .evaluate((node) => getComputedStyle(node).borderTopStyle);
+  const incomeColor = await page
+    .locator(".calendar-day small")
+    .first()
+    .evaluate((node) => getComputedStyle(node).color);
 
   expect(bodyBackground).toBe("rgb(255, 255, 255)");
   expect(appBackground).toBe("rgba(0, 0, 0, 0)");
@@ -52,11 +139,31 @@ test("Calendar home uses white canvas and Figma-style selected date treatment", 
   expect(appFlexGrow).toBe("0");
   expect(calendarGap).toBeGreaterThanOrEqual(12);
   expect(calendarGap).toBeLessThanOrEqual(16);
+  expect(titleStyle.color).toBe("rgb(29, 29, 31)");
+  expect(titleStyle.fontSize).toBeGreaterThanOrEqual(28);
+  expect(Number(titleStyle.fontWeight)).toBeGreaterThanOrEqual(700);
+  expect(monthStyle.color).toBe("rgb(29, 29, 31)");
+  expect(monthStyle.fontSize).toBeGreaterThanOrEqual(26);
+  expect(Number(monthStyle.fontWeight)).toBeGreaterThanOrEqual(700);
+  expect(Math.abs(monthStyle.left - titleStyle.left)).toBeLessThanOrEqual(1);
+  expect(nextButtonLeft).toBeGreaterThan(monthStyle.left + 200);
+  expect(incomeCardStyle.background).toBe("rgb(245, 245, 247)");
+  expect(incomeCardStyle.borderRadius).toBeGreaterThanOrEqual(20);
+  expect(incomeCardStyle.display).toBe("grid");
+  expect(incomeCardRows.map((row) => row.text)).toEqual(["Monthly Net Income", "$100.00", "1 shifts"]);
+  expect(incomeCardRows[0].color).toBe("rgb(134, 134, 139)");
+  expect(incomeCardRows[1].color).toBe("rgb(29, 29, 31)");
+  expect(incomeCardRows[1].fontSize).toBeGreaterThanOrEqual(34);
+  expect(incomeCardRows[2].color).toBe("rgb(134, 134, 139)");
+  expect(incomeCardRows.map((row) => row.top)).toEqual([...incomeCardRows.map((row) => row.top)].sort((a, b) => a - b));
   expect(navPosition).toBe("fixed");
   expect(navBottom).toBe("0px");
   expect(selectedBackground).toBe("rgb(0, 102, 204)");
   expect(selectedColor).toBe("rgb(255, 255, 255)");
+  expect(selectedRadius).toBeGreaterThanOrEqual(16);
+  expect(selectedHeight).toBeGreaterThanOrEqual(58);
   expect(defaultBorder).toBe("none");
+  expect(incomeColor).toBe("rgb(52, 199, 89)");
 });
 
 test("empty calendar dates open a new Record Shift form directly", async ({ page }) => {
