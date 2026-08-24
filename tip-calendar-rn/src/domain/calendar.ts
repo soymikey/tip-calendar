@@ -30,6 +30,22 @@ export function startOfWeek(localDate: LocalDate, weekStartsOn: WeekStartsOn): L
   return toLocalDate(date)
 }
 
+export function addDays(localDate: LocalDate, days: number): LocalDate {
+  const date = parseLocalDate(localDate)
+  date.setDate(date.getDate() + days)
+  return toLocalDate(date)
+}
+
+export function endOfWeek(localDate: LocalDate, weekStartsOn: WeekStartsOn): LocalDate {
+  return addDays(startOfWeek(localDate, weekStartsOn), 6)
+}
+
+const WEEKDAY_LETTERS = ["S", "M", "T", "W", "T", "F", "S"] as const
+
+export function weekdayLetters(weekStartsOn: WeekStartsOn): string[] {
+  return [...WEEKDAY_LETTERS.slice(weekStartsOn), ...WEEKDAY_LETTERS.slice(0, weekStartsOn)]
+}
+
 export function buildMonthGrid(
   year: number,
   month: number,

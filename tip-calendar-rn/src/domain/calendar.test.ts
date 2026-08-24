@@ -1,4 +1,11 @@
-import { buildMonthGrid, groupNetIncomeByLocalDate, startOfWeek } from "./calendar"
+import {
+  addDays,
+  buildMonthGrid,
+  endOfWeek,
+  groupNetIncomeByLocalDate,
+  startOfWeek,
+  weekdayLetters,
+} from "./calendar"
 import type { Shift } from "./shift"
 
 function shift(localDate: string, netIncomeCents: number): Shift {
@@ -25,6 +32,27 @@ describe("startOfWeek", () => {
 
   it("starts on Monday when preferences say so", () => {
     expect(startOfWeek("2026-08-21", 1)).toBe("2026-08-17")
+  })
+})
+
+describe("addDays and endOfWeek", () => {
+  it("adds days across month boundaries", () => {
+    expect(addDays("2026-08-31", 1)).toBe("2026-09-01")
+  })
+
+  it("ends the week six days after the start", () => {
+    expect(endOfWeek("2026-08-21", 0)).toBe("2026-08-22")
+    expect(endOfWeek("2026-08-21", 1)).toBe("2026-08-23")
+  })
+})
+
+describe("weekdayLetters", () => {
+  it("keeps Sunday-first headers by default", () => {
+    expect(weekdayLetters(0)).toEqual(["S", "M", "T", "W", "T", "F", "S"])
+  })
+
+  it("rotates headers when the week starts on Monday", () => {
+    expect(weekdayLetters(1)).toEqual(["M", "T", "W", "T", "F", "S", "S"])
   })
 })
 

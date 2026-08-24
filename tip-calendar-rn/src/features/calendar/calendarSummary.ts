@@ -1,7 +1,8 @@
 import { startOfWeek, type LocalDate, type WeekStartsOn } from "../../domain/calendar"
 import type { Cents } from "../../domain/money"
 import type { Restaurant } from "../../domain/restaurant"
-import { calculateShiftIncome, type Shift } from "../../domain/shift"
+import type { Shift } from "../../domain/shift"
+import { netIncomeCentsForShift } from "../shift/shiftIncome"
 
 export type CalendarSummary = {
   byDate: Map<LocalDate, Cents>
@@ -11,27 +12,7 @@ export type CalendarSummary = {
 }
 
 function netForShift(shift: Shift, restaurants: Restaurant[]): Cents {
-  const restaurant = restaurants.find((item) => item.id === shift.restaurantId)
-  if (!restaurant) {
-    return 0
-  }
-  const paid = shift.paySnapshot
-    ? {
-        ...restaurant,
-        payType: shift.paySnapshot.payType,
-        payAmountCents: shift.paySnapshot.payAmountCents,
-      }
-    : restaurant
-  return calculateShiftIncome({
-    restaurant: paid,
-    hours: shift.hours,
-    unpaidBreakHours: shift.unpaidBreakHours,
-    cashTipsCents: shift.cashTipsCents,
-    cardTipsCents: shift.cardTipsCents,
-    otherIncomeCents: shift.otherIncomeCents,
-    salesCents: shift.salesCents,
-    tipOutOverride: shift.tipOutSnapshot.rule,
-  }).netIncomeCents
+  return netIncomeCentsForShift(shift, restaurants)
 }
 
 export function summarizeCalendar(input: {

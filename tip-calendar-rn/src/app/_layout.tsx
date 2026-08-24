@@ -32,6 +32,11 @@ function RootStack() {
       <Stack.Screen name="onboarding/index" />
       <Stack.Screen name="shift/new" />
       <Stack.Screen name="shift/[id]" />
+      <Stack.Screen name="restaurant/index" />
+      <Stack.Screen name="restaurant/[id]" />
+      <Stack.Screen name="preferences" />
+      <Stack.Screen name="data-backup" />
+      <Stack.Screen name="about-privacy" />
     </Stack>
   )
 }

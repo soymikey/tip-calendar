@@ -1,5 +1,5 @@
-import { router } from "expo-router"
-import { useEffect, useMemo, useRef, useState } from "react"
+import { router, useFocusEffect } from "expo-router"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Alert, Text, View } from "react-native"
 import { SafeAreaView } from "react-native-safe-area-context"
 
@@ -10,12 +10,14 @@ import { nextCalendarPress } from "@/features/calendar/calendarPress"
 import { EmptyShiftOverlay } from "@/features/calendar/EmptyShiftOverlay"
 import { UndoToast } from "@/features/calendar/UndoToast"
 import { formatUsd } from "@/domain/money"
+import { parseLocalDate } from "@/domain/calendar"
 import type { Shift } from "@/domain/shift"
 import {
   insertShiftAt,
   removeShift,
   shiftsOnDate,
 } from "@/features/shift/shiftDraft"
+import { takeOpenDateRequest } from "@/features/calendar/openDateRequest"
 import { useAppState } from "@/state/AppStateContext"
 import { colors } from "@/theme/colors"
 
@@ -65,6 +67,27 @@ export default function CalendarScreen() {
       }
     }
   }, [])
+
+  useFocusEffect(
+    useCallback(() => {
+      const date = takeOpenDateRequest()
+      if (!date) {
+        return
+      }
+      const parsed = parseLocalDate(date)
+      armedLocalDate.current = date
+      setShowEmptyHint(false)
+      setYear(parsed.getFullYear())
+      setMonth(parsed.getMonth() + 1)
+      setSelectedLocalDate(date)
+      if (shiftsOnDate(state.shifts, date).length === 0) {
+        setSheetDate(null)
+        router.push({ pathname: "/shift/new", params: { date } })
+        return
+      }
+      setSheetDate(date)
+    }, [state.shifts]),
+  )
 
   function clearUndoTimer() {
     if (undoTimer.current) {
@@ -174,6 +197,7 @@ export default function CalendarScreen() {
           year={year}
           month={month}
           selectedLocalDate={selectedLocalDate}
+          weekStartsOn={state.preferences.weekStartsOn}
           amountsByDate={summary.byDate}
           faded={showOverlay}
           overlay={
