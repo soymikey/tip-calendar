@@ -68,6 +68,8 @@ export default function App() {
   const [deleteTarget, setDeleteTarget] = useState<ShiftRecord | null>(null);
   const [undoShift, setUndoShift] = useState<ShiftRecord | null>(null);
   const [selectedDate, setSelectedDate] = useState(draft.date);
+  const [activeTab, setActiveTab] = useState<"calendar" | "settings">("calendar");
+  const [screen, setScreen] = useState<"home" | "shift">("home");
   const [exportOutput, setExportOutput] = useState("");
   const [importText, setImportText] = useState("");
   const [importConfirmed, setImportConfirmed] = useState(false);
@@ -185,6 +187,7 @@ export default function App() {
     setShowDetails(false);
     setShowMore(false);
     setStatus("idle");
+    setScreen("shift");
   }
 
   function handleShiftSave(event: FormEvent<HTMLFormElement>) {
@@ -202,6 +205,8 @@ export default function App() {
     setSelectedDate(draft.date);
     setDraft(createEmptyShiftDraft(draft.date));
     setShowDetails(false);
+    setScreen("home");
+    setActiveTab("calendar");
     setStatus("shiftSaved");
   }
 
@@ -210,6 +215,7 @@ export default function App() {
     setSelectedDate(shift.date);
     setShowMore(Boolean(shift.useClock || shift.unpaidBreak || shift.notes));
     setShowDetails(false);
+    setScreen("shift");
     setStatus("idle");
   }
 
@@ -255,6 +261,8 @@ export default function App() {
     setSelectedDate(nextState.shifts[0]?.date ?? selectedDate);
     setDraft(createEmptyShiftDraft(nextState.shifts[0]?.date ?? selectedDate));
     setImportConfirmed(false);
+    setScreen("home");
+    setActiveTab("calendar");
     setBackupMessage(result.message);
   }
 
@@ -296,6 +304,8 @@ export default function App() {
         </p>
       </section>
 
+      {screen === "home" && activeTab === "calendar" && (
+        <>
       <section className="settings-panel calendar-panel" aria-labelledby="calendar-title">
         <div className="section-heading">
           <h2 id="calendar-title">{formatMonth(selectedDate)}</h2>
@@ -358,7 +368,12 @@ export default function App() {
         </div>
       </section>
 
-      <section className="settings-panel day-detail" aria-labelledby="day-detail-title">
+      <section
+        className="settings-panel day-detail"
+        role="dialog"
+        aria-modal="false"
+        aria-label={`Day detail ${selectedDate}`}
+      >
         <div className="section-heading">
           <div>
             <h2 id="day-detail-title">Day detail</h2>
@@ -379,7 +394,7 @@ export default function App() {
           <p className="empty-state">This day has no shifts yet.</p>
         )}
         <button className="primary-button" type="button" onClick={() => startShiftForDate(selectedDate)}>
-          Record a shift
+          Record Shift
         </button>
         {selectedShifts.map((shift) => {
           const itemCalculation = calculateShift({
@@ -417,7 +432,11 @@ export default function App() {
           );
         })}
       </section>
+        </>
+      )}
 
+      {screen === "home" && activeTab === "settings" && (
+        <>
       <form className="settings-panel" onSubmit={saveSettings}>
         <div className="section-heading">
           <h2>Restaurant settings</h2>
@@ -569,8 +588,64 @@ export default function App() {
             Reset demo data
           </button>
         </div>
+        <div className="status-line" aria-live="polite">
+          {status === "saved" && "Settings saved locally."}
+          {status === "reset" && "Demo data restored."}
+        </div>
       </form>
 
+      <section className="settings-panel backup-panel" aria-labelledby="backup-title">
+        <div className="section-heading">
+          <h2 id="backup-title">Export and backup</h2>
+          <p>Local only</p>
+        </div>
+        <p className="empty-state">Net income is not the same as cash in hand.</p>
+        <div className="actions">
+          <button className="secondary-button" type="button" onClick={handleExportCsv}>
+            Export CSV
+          </button>
+          <button className="secondary-button" type="button" onClick={handleExportJson}>
+            Export JSON
+          </button>
+        </div>
+        <label className="field">
+          <span>Export output</span>
+          <textarea
+            aria-label="Export output"
+            readOnly
+            rows={7}
+            value={exportOutput}
+          />
+        </label>
+        <label className="field">
+          <span>JSON backup to import</span>
+          <textarea
+            aria-label="JSON backup to import"
+            rows={6}
+            value={importText}
+            onChange={(event) => setImportText(event.target.value)}
+          />
+        </label>
+        <label className="check-field">
+          <input
+            aria-label="Replace local data with this backup"
+            checked={importConfirmed}
+            type="checkbox"
+            onChange={(event) => setImportConfirmed(event.target.checked)}
+          />
+          Replace local data with this backup
+        </label>
+        <button className="primary-button" type="button" onClick={handleImportJson}>
+          Import JSON backup
+        </button>
+        <div className="status-line" aria-live="polite">
+          {backupMessage}
+        </div>
+      </section>
+        </>
+      )}
+
+      {screen === "shift" && (
       <form className="settings-panel shift-panel" onSubmit={handleShiftSave}>
         <div className="section-heading">
           <div>
@@ -831,100 +906,32 @@ export default function App() {
           {isEditing ? "Update shift" : "Save shift"}
         </button>
       </form>
+      )}
 
-      <section className="settings-panel shift-list" aria-labelledby="saved-shifts">
-        <div className="section-heading">
-          <h2 id="saved-shifts">Saved shifts</h2>
-          <p>{appState.shifts.length} total</p>
-        </div>
-
-        {appState.shifts.length === 0 && <p className="empty-state">No shifts recorded yet.</p>}
-
-        {appState.shifts.map((shift) => {
-          const itemCalculation = calculateShift({
-            payType: payForShift(shift).payType,
-            payAmount: payForShift(shift).payAmount,
-            hours: shift.hours,
-            useClock: shift.useClock,
-            clockIn: shift.clockIn,
-            clockOut: shift.clockOut,
-            unpaidBreak: shift.unpaidBreak,
-            cashTips: shift.cashTips,
-            creditTips: shift.creditTips,
-            otherIncome: shift.otherIncome,
-            manualTipOut: shift.manualTipOut,
-            salesAmount: shift.salesAmount,
-            tipOutRule: shift.tipOutRuleSnapshot,
-          });
-
-          return (
-            <article className="shift-card" key={shift.id}>
-              <div>
-                <h3>{shift.date}</h3>
-                <p>Net income {money(itemCalculation.netIncome)}</p>
-                {itemCalculation.isCrossMidnight && <p>Cross-midnight shift</p>}
-              </div>
-              <div className="card-actions">
-                <button type="button" onClick={() => handleEditShift(shift)}>
-                  Edit shift {shift.date}
-                </button>
-                <button type="button" onClick={() => setDeleteTarget(shift)}>
-                  Delete shift {shift.date}
-                </button>
-              </div>
-            </article>
-          );
-        })}
-      </section>
-
-      <section className="settings-panel backup-panel" aria-labelledby="backup-title">
-        <div className="section-heading">
-          <h2 id="backup-title">Export and backup</h2>
-          <p>Local only</p>
-        </div>
-        <p className="empty-state">Net income is not the same as cash in hand.</p>
-        <div className="actions">
-          <button className="secondary-button" type="button" onClick={handleExportCsv}>
-            Export CSV
-          </button>
-          <button className="secondary-button" type="button" onClick={handleExportJson}>
-            Export JSON
-          </button>
-        </div>
-        <label className="field">
-          <span>Export output</span>
-          <textarea
-            aria-label="Export output"
-            readOnly
-            rows={7}
-            value={exportOutput}
-          />
-        </label>
-        <label className="field">
-          <span>JSON backup to import</span>
-          <textarea
-            aria-label="JSON backup to import"
-            rows={6}
-            value={importText}
-            onChange={(event) => setImportText(event.target.value)}
-          />
-        </label>
-        <label className="check-field">
-          <input
-            aria-label="Replace local data with this backup"
-            checked={importConfirmed}
-            type="checkbox"
-            onChange={(event) => setImportConfirmed(event.target.checked)}
-          />
-          Replace local data with this backup
-        </label>
-        <button className="primary-button" type="button" onClick={handleImportJson}>
-          Import JSON backup
+      <nav className="bottom-tabs" aria-label="Primary">
+        <button
+          role="tab"
+          aria-selected={activeTab === "calendar" && screen === "home"}
+          type="button"
+          onClick={() => {
+            setScreen("home");
+            setActiveTab("calendar");
+          }}
+        >
+          Calendar
         </button>
-        <div className="status-line" aria-live="polite">
-          {backupMessage}
-        </div>
-      </section>
+        <button
+          role="tab"
+          aria-selected={activeTab === "settings" && screen === "home"}
+          type="button"
+          onClick={() => {
+            setScreen("home");
+            setActiveTab("settings");
+          }}
+        >
+          Settings
+        </button>
+      </nav>
 
       {undoShift && (
         <div className="undo-bar">

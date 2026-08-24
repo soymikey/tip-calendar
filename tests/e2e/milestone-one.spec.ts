@@ -3,6 +3,7 @@ import { expect, test } from "@playwright/test";
 test("mobile user can persist restaurant settings across refresh and reset demo data", async ({ page }) => {
   await page.goto("/");
 
+  await page.getByRole("tab", { name: "Settings" }).click();
   await expect(page.getByRole("heading", { name: "Restaurant settings" })).toBeVisible();
   await page.getByLabel("Restaurant name").fill("Blue Plate Diner");
   await page.getByLabel("Fixed pay per shift").check();
@@ -11,6 +12,7 @@ test("mobile user can persist restaurant settings across refresh and reset demo 
   await expect(page.getByText("Settings saved locally.")).toBeVisible();
 
   await page.reload();
+  await page.getByRole("tab", { name: "Settings" }).click();
 
   await expect(page.getByLabel("Restaurant name")).toHaveValue("Blue Plate Diner");
   await expect(page.getByLabel("Pay amount")).toHaveValue("95");

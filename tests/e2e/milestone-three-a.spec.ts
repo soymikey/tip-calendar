@@ -6,14 +6,14 @@ test("mobile calendar shows daily, week, and month summaries for same-day shifts
   const today = await page.getByTestId("selected-date").textContent();
   if (!today) throw new Error("selected date missing");
 
-  await page.getByRole("button", { name: "Record a shift" }).click();
+  await page.getByRole("button", { name: "Record Shift" }).click();
   await page.getByLabel("Work hours").fill("4");
   await page.getByLabel("Cash tips").fill("20");
   await page.getByLabel("Credit card tips").fill("80");
   await page.getByLabel("Manual tip-out").fill("10");
   await page.getByRole("button", { name: "Save shift" }).click();
 
-  await page.getByRole("button", { name: "Record a shift" }).click();
+  await page.getByRole("button", { name: "Record Shift" }).click();
   await page.getByLabel("Work hours").fill("5");
   await page.getByLabel("Cash tips").fill("40");
   await page.getByLabel("Credit card tips").fill("120");
@@ -35,7 +35,7 @@ test("mobile day detail handles empty dates, edit entry, and cross-midnight badg
   await page.getByRole("button", { name: `Select ${selected}` }).click();
   await expect(page.getByText("This day has no shifts yet.")).toBeVisible();
 
-  await page.getByRole("button", { name: "Record a shift" }).click();
+  await page.getByRole("button", { name: "Record Shift" }).click();
   await page.getByRole("button", { name: "More options" }).click();
   await page.getByLabel("Use clock in and out").check();
   await page.getByLabel("Clock in", { exact: true }).fill("22:00");

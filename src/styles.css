@@ -30,11 +30,11 @@ textarea {
   width: min(100%, 430px);
   min-height: 100vh;
   margin: 0 auto;
-  padding: 20px 16px 28px;
+  padding: 18px 16px 92px;
 }
 
 .hero-panel {
-  padding: 24px 4px 20px;
+  padding: 10px 4px 2px;
 }
 
 .eyebrow {
@@ -51,8 +51,8 @@ p {
 }
 
 h1 {
-  margin-bottom: 10px;
-  font-size: 34px;
+  margin-bottom: 6px;
+  font-size: 28px;
   line-height: 1.12;
   letter-spacing: 0;
 }
@@ -61,7 +61,7 @@ h1 {
   margin-bottom: 0;
   max-width: 34ch;
   color: #515154;
-  font-size: 17px;
+  font-size: 15px;
   line-height: 1.45;
 }
 
@@ -173,6 +173,11 @@ h1 {
 
 .day-detail {
   gap: 14px;
+  position: sticky;
+  bottom: 72px;
+  z-index: 2;
+  border-bottom-right-radius: 0;
+  border-bottom-left-radius: 0;
 }
 
 .day-totals {
@@ -266,6 +271,36 @@ h1 {
 
 .backup-panel {
   padding-bottom: 24px;
+}
+
+.bottom-tabs {
+  position: fixed;
+  left: 50%;
+  bottom: 0;
+  z-index: 5;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  width: min(100%, 430px);
+  padding: 10px 16px 14px;
+  border-top: 1px solid #e5e5ea;
+  background: rgb(255 255 255 / 94%);
+  transform: translateX(-50%);
+  backdrop-filter: blur(16px);
+}
+
+.bottom-tabs button {
+  min-height: 44px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #515154;
+  font-weight: 600;
+}
+
+.bottom-tabs button[aria-selected="true"] {
+  background: #0066cc;
+  color: #ffffff;
 }
 
 .restaurant-list {

@@ -3,6 +3,7 @@ import { expect, test } from "@playwright/test";
 test("mobile user can create, edit, delete, undo, and refresh a shift", async ({ page }) => {
   await page.goto("/");
 
+  await page.getByRole("button", { name: "Record Shift" }).click();
   await page.getByLabel("Work hours").fill("6");
   await page.getByLabel("Cash tips").fill("45");
   await page.getByLabel("Credit card tips").fill("180");
@@ -23,7 +24,7 @@ test("mobile user can create, edit, delete, undo, and refresh a shift", async ({
 
   await page.getByLabel("Day detail").getByRole("button", { name: /Delete shift/ }).click();
   await page.getByLabel("Delete this shift?").getByRole("button", { name: "Delete" }).click();
-  await expect(page.getByText("No shifts recorded yet.")).toBeVisible();
+  await expect(page.getByLabel("Day detail").getByText("This day has no shifts yet.")).toBeVisible();
 
   await page.getByRole("button", { name: "Undo delete" }).click();
   await expect(page.getByLabel("Day detail").getByText("Net income $295.00")).toBeVisible();
@@ -32,6 +33,7 @@ test("mobile user can create, edit, delete, undo, and refresh a shift", async ({
 test("mobile user sees advanced clock and validation states", async ({ page }) => {
   await page.goto("/");
 
+  await page.getByRole("button", { name: "Record Shift" }).click();
   await page.getByRole("button", { name: "More options" }).click();
   await page.getByLabel("Use clock in and out").check();
   await page.getByLabel("Clock in", { exact: true }).fill("22:30");

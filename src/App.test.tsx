@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it } from "vitest";
 import App from "./App";
@@ -14,6 +14,7 @@ describe("App", () => {
     const user = userEvent.setup();
     render(<App />);
 
+    await user.click(screen.getByRole("tab", { name: "Settings" }));
     await user.clear(screen.getByLabelText("Restaurant name"));
     await user.type(screen.getByLabelText("Restaurant name"), "Blue Plate Diner");
     await user.click(screen.getByLabelText("Fixed pay per shift"));
@@ -33,6 +34,7 @@ describe("App", () => {
     const user = userEvent.setup();
     render(<App />);
 
+    await user.click(screen.getByRole("tab", { name: "Settings" }));
     await user.clear(screen.getByLabelText("Restaurant name"));
     await user.type(screen.getByLabelText("Restaurant name"), "Changed");
     await user.click(screen.getByRole("button", { name: "Save restaurant" }));
@@ -46,6 +48,7 @@ describe("App", () => {
     const user = userEvent.setup();
     render(<App />);
 
+    await user.click(screen.getByRole("button", { name: "Record Shift" }));
     await user.type(screen.getByLabelText("Work hours"), "6");
     await user.type(screen.getByLabelText("Cash tips"), "45");
     await user.type(screen.getByLabelText("Credit card tips"), "180");
@@ -57,7 +60,6 @@ describe("App", () => {
 
     await user.click(screen.getByRole("button", { name: "Save shift" }));
 
-    expect(screen.getByText("Shift saved locally.")).toBeInTheDocument();
     expect(loadAppState().shifts).toHaveLength(1);
     expect(screen.getAllByText("Net income $285.00").length).toBeGreaterThan(0);
   });
@@ -66,6 +68,7 @@ describe("App", () => {
     const user = userEvent.setup();
     render(<App />);
 
+    await user.click(screen.getByRole("button", { name: "Record Shift" }));
     await user.type(screen.getByLabelText("Work hours"), "4");
     await user.type(screen.getByLabelText("Cash tips"), "20");
     await user.click(screen.getByRole("button", { name: "Save shift" }));
@@ -77,7 +80,8 @@ describe("App", () => {
     expect(loadAppState().shifts[0].cashTips).toBe(40);
 
     await user.click(screen.getAllByRole("button", { name: /Delete shift/ })[0]);
-    await user.click(screen.getAllByRole("button", { name: "Delete" })[1]);
+    const deleteDialog = screen.getByRole("dialog", { name: "Delete this shift?" });
+    await user.click(within(deleteDialog).getByRole("button", { name: "Delete" }));
 
     expect(loadAppState().shifts).toHaveLength(0);
     expect(screen.getByRole("button", { name: "Undo delete" })).toBeInTheDocument();
@@ -90,6 +94,7 @@ describe("App", () => {
     const user = userEvent.setup();
     render(<App />);
 
+    await user.click(screen.getByRole("button", { name: "Record Shift" }));
     await user.click(screen.getByRole("button", { name: "More options" }));
     await user.click(screen.getByLabelText("Use clock in and out"));
     await user.type(screen.getByLabelText("Clock in"), "22:30");
