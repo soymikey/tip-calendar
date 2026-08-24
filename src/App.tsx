@@ -169,6 +169,7 @@ export default function App() {
   const dateSummaries = summarizeShiftsByDate(appState.shifts, payForShift);
   const selectedShifts = appState.shifts.filter((shift) => shift.date === selectedDate);
   const selectedSummary = summarizeShifts(selectedShifts, payForShift);
+  const weekSummary = summarizePeriod(appState.shifts, payForShift, selectedDate, "week");
   const monthSummary = summarizePeriod(appState.shifts, payForShift, selectedDate, "month");
   const monthDays = buildMonthDays(selectedDate);
 
@@ -423,10 +424,22 @@ export default function App() {
           </div>
         </div>
 
-        <div className="monthly-income-card" aria-label="Monthly Net Income">
-          <span>Monthly Net Income</span>
-          <strong>{money(monthSummary.netIncome)}</strong>
-          <small>{monthSummary.shiftCount} shifts</small>
+        <div className="summary-strip" aria-label="Income summaries">
+          <div>
+            <span>This Week</span>
+            <strong>{money(weekSummary.netIncome)}</strong>
+            <small>{weekSummary.shiftCount} shifts</small>
+          </div>
+          <div>
+            <span>This Month</span>
+            <strong>{money(monthSummary.netIncome)}</strong>
+            <small>{monthSummary.effectiveHours} hrs</small>
+          </div>
+          <div>
+            <span>Hourly</span>
+            <strong>{monthSummary.averageActualHourly === null ? "$0.00/hr" : `${money(monthSummary.averageActualHourly)}/hr`}</strong>
+            <small>{money(monthSummary.totalTips)} tips</small>
+          </div>
         </div>
 
         <div className="weekday-grid" aria-hidden="true">

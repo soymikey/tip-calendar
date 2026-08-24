@@ -74,8 +74,11 @@ test("mobile calendar shows daily, week, and month summaries for same-day shifts
   const today = "2026-08-14";
 
   await expect(page.getByTestId(`calendar-net-${today}`)).toContainText("$362.50");
-  await expect(page.getByLabel("Monthly Net Income")).toContainText("$362.50");
-  await expect(page.getByLabel("Monthly Net Income")).toContainText("2 shifts");
+  await expect(page.getByLabel("Income summaries")).toContainText("This Week");
+  await expect(page.getByLabel("Income summaries")).toContainText("This Month");
+  await expect(page.getByLabel("Income summaries")).toContainText("Hourly");
+  await expect(page.getByLabel("Income summaries")).toContainText("$362.50");
+  await expect(page.getByLabel("Income summaries")).toContainText("$40.28/hr");
   await page.getByRole("button", { name: `Select ${today}` }).click();
   await expect(page.getByLabel("Day detail").getByText("Lunch Shift")).toBeVisible();
   await expect(page.getByLabel("Day detail").getByText("Dinner Shift")).toBeVisible();

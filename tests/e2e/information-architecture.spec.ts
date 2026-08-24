@@ -88,22 +88,26 @@ test("Calendar home uses white canvas and Figma-style selected date treatment", 
   const nextButtonLeft = await page
     .getByRole("button", { name: "Next month" })
     .evaluate((node) => node.getBoundingClientRect().left);
-  const incomeCard = page.locator(".monthly-income-card");
-  const incomeCardStyle = await incomeCard.evaluate((node) => {
+  const summaryStrip = page.locator(".summary-strip");
+  const summaryStyle = await summaryStrip.evaluate((node) => {
     const style = getComputedStyle(node);
-    return {
-      background: style.backgroundColor,
-      borderRadius: parseFloat(style.borderRadius),
-      display: style.display,
-    };
+    return { display: style.display, columns: style.gridTemplateColumns.split(" ").length };
   });
-  const incomeCardRows = await incomeCard.evaluate((node) =>
-    Array.from(node.children).map((child) => ({
-      text: child.textContent?.trim(),
-      top: child.getBoundingClientRect().top,
-      color: getComputedStyle(child).color,
-      fontSize: parseFloat(getComputedStyle(child).fontSize),
-    })),
+  const summaryCards = await summaryStrip.locator("div").evaluateAll((nodes) =>
+    nodes.map((node) => {
+      const style = getComputedStyle(node);
+      const children = Array.from(node.children);
+      return {
+        background: style.backgroundColor,
+        borderRadius: parseFloat(style.borderRadius),
+        rows: children.map((child) => ({
+          text: child.textContent?.trim(),
+          top: child.getBoundingClientRect().top,
+          color: getComputedStyle(child).color,
+          fontSize: parseFloat(getComputedStyle(child).fontSize),
+        })),
+      };
+    }),
   );
   const appBackground = await appShell.evaluate((node) => getComputedStyle(node).backgroundColor);
   const appPaddingTop = await appShell.evaluate((node) => parseFloat(getComputedStyle(node).paddingTop));
@@ -147,15 +151,22 @@ test("Calendar home uses white canvas and Figma-style selected date treatment", 
   expect(Number(monthStyle.fontWeight)).toBeGreaterThanOrEqual(700);
   expect(Math.abs(monthStyle.left - titleStyle.left)).toBeLessThanOrEqual(1);
   expect(nextButtonLeft).toBeGreaterThan(monthStyle.left + 200);
-  expect(incomeCardStyle.background).toBe("rgb(245, 245, 247)");
-  expect(incomeCardStyle.borderRadius).toBeGreaterThanOrEqual(20);
-  expect(incomeCardStyle.display).toBe("grid");
-  expect(incomeCardRows.map((row) => row.text)).toEqual(["Monthly Net Income", "$100.00", "1 shifts"]);
-  expect(incomeCardRows[0].color).toBe("rgb(134, 134, 139)");
-  expect(incomeCardRows[1].color).toBe("rgb(29, 29, 31)");
-  expect(incomeCardRows[1].fontSize).toBeGreaterThanOrEqual(34);
-  expect(incomeCardRows[2].color).toBe("rgb(134, 134, 139)");
-  expect(incomeCardRows.map((row) => row.top)).toEqual([...incomeCardRows.map((row) => row.top)].sort((a, b) => a - b));
+  expect(summaryStyle.display).toBe("grid");
+  expect(summaryStyle.columns).toBe(3);
+  expect(summaryCards.map((card) => card.rows.map((row) => row.text))).toEqual([
+    ["This Week", "$100.00", "1 shifts"],
+    ["This Month", "$100.00", "4 hrs"],
+    ["Hourly", "$25.00/hr", "$60.00 tips"],
+  ]);
+  for (const card of summaryCards) {
+    expect(card.background).toBe("rgb(245, 245, 247)");
+    expect(card.borderRadius).toBeGreaterThanOrEqual(16);
+    expect(card.rows[0].color).toBe("rgb(134, 134, 139)");
+    expect(card.rows[1].color).toBe("rgb(29, 29, 31)");
+    expect(card.rows[1].fontSize).toBeGreaterThanOrEqual(16);
+    expect(card.rows[2].color).toBe("rgb(134, 134, 139)");
+    expect(card.rows.map((row) => row.top)).toEqual([...card.rows.map((row) => row.top)].sort((a, b) => a - b));
+  }
   expect(navPosition).toBe("fixed");
   expect(navBottom).toBe("0px");
   expect(selectedBackground).toBe("rgb(0, 102, 204)");

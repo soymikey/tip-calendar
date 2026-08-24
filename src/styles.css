@@ -148,31 +148,38 @@ h1 {
   stroke-linejoin: round;
 }
 
-.monthly-income-card {
+.summary-strip {
   display: grid;
-  gap: 6px;
-  border-radius: 22px;
-  padding: 18px 20px 17px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.summary-strip div {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  border-radius: 18px;
+  padding: 13px 12px;
   background: #f5f5f7;
 }
 
-.monthly-income-card span,
-.monthly-income-card small,
+.summary-strip span,
+.summary-strip small,
 .weekday-grid {
   color: #86868b;
 }
 
-.monthly-income-card span,
-.monthly-income-card small {
-  font-size: 14px;
+.summary-strip span,
+.summary-strip small {
+  font-size: 12px;
   line-height: 1.2;
 }
 
-.monthly-income-card strong {
+.summary-strip strong {
   color: #1d1d1f;
   overflow-wrap: anywhere;
-  font-size: 38px;
-  line-height: 1.02;
+  font-size: 17px;
+  line-height: 1.08;
   font-variant-numeric: tabular-nums;
 }
 
