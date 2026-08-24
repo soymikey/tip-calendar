@@ -6,10 +6,10 @@ import { SafeAreaView } from "react-native-safe-area-context"
 import { CalendarMonth, defaultSelectedDate } from "@/features/calendar/CalendarMonth"
 import { DayDetailsSheet } from "@/features/calendar/DayDetailsSheet"
 import { summarizeCalendar } from "@/features/calendar/calendarSummary"
+import { nextCalendarPress } from "@/features/calendar/calendarPress"
 import { EmptyShiftOverlay } from "@/features/calendar/EmptyShiftOverlay"
 import { UndoToast } from "@/features/calendar/UndoToast"
 import { formatUsd } from "@/domain/money"
-import { toLocalDate } from "@/domain/calendar"
 import type { Shift } from "@/domain/shift"
 import {
   insertShiftAt,
@@ -24,7 +24,6 @@ const UNDO_MS = 5000
 export default function CalendarScreen() {
   const { state, updateState } = useAppState()
   const now = new Date()
-  const today = toLocalDate(new Date())
   const [year, setYear] = useState(now.getFullYear())
   const [month, setMonth] = useState(now.getMonth() + 1)
   const [selectedLocalDate, setSelectedLocalDate] = useState(() =>
@@ -34,6 +33,7 @@ export default function CalendarScreen() {
   const [sheetDate, setSheetDate] = useState<string | null>(null)
   const [undo, setUndo] = useState<{ shift: Shift; index: number } | null>(null)
   const undoTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const armedLocalDate = useRef<string | null>(null)
   const hasShifts = state.shifts.length > 0
   const showOverlay = !hasShifts && showEmptyHint
   const sheetShifts = sheetDate ? shiftsOnDate(state.shifts, sheetDate) : []
@@ -43,15 +43,16 @@ export default function CalendarScreen() {
       summarizeCalendar({
         shifts: state.shifts,
         restaurants: state.restaurants,
-        today,
+        weekAnchor: selectedLocalDate,
         year,
         month,
         weekStartsOn: state.preferences.weekStartsOn,
       }),
-    [state.shifts, state.restaurants, state.preferences.weekStartsOn, today, year, month],
+    [state.shifts, state.restaurants, state.preferences.weekStartsOn, selectedLocalDate, year, month],
   )
 
   function changeMonth(nextYear: number, nextMonth: number) {
+    armedLocalDate.current = null
     setYear(nextYear)
     setMonth(nextMonth)
     setSelectedLocalDate(defaultSelectedDate(nextYear, nextMonth))
@@ -72,15 +73,23 @@ export default function CalendarScreen() {
     }
   }
 
-  function selectDate(localDate: string) {
-    setShowEmptyHint(false)
-    setSelectedLocalDate(localDate)
+  function openDate(localDate: string) {
     if (shiftsOnDate(state.shifts, localDate).length === 0) {
       setSheetDate(null)
       router.push({ pathname: "/shift/new", params: { date: localDate } })
       return
     }
     setSheetDate(localDate)
+  }
+
+  function selectDate(localDate: string) {
+    setShowEmptyHint(false)
+    const next = nextCalendarPress(armedLocalDate.current, localDate)
+    armedLocalDate.current = next.armedLocalDate
+    setSelectedLocalDate(next.selectedLocalDate)
+    if (next.open) {
+      openDate(localDate)
+    }
   }
 
   function openNewShift(localDate: string) {

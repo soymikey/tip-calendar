@@ -114,24 +114,20 @@ export function CalendarMonth({
                       key={cell.localDate}
                       accessibilityRole="button"
                       accessibilityLabel={cell.localDate}
-                      className="h-[52px] flex-1 items-center justify-center gap-0.5 rounded-lg py-1.5"
-                      style={selected ? { backgroundColor: colors.action } : undefined}
+                      className="h-[52px] flex-1 items-center rounded-lg pt-1"
+                      style={{
+                        borderWidth: 2,
+                        borderColor: selected ? colors.action : "transparent",
+                      }}
                       onPress={() => onSelectDate(cell.localDate)}>
-                      <Text
-                        className="text-[14px] font-medium"
-                        style={{
-                          color: selected ? "#FFFFFF" : "#1C1C1E",
-                          fontWeight: selected ? "700" : "500",
-                        }}>
-                        {cell.day}
-                      </Text>
-                      {amount !== undefined ? (
-                        <Text
-                          className="text-[11px] font-semibold"
-                          style={{ color: selected ? "#FFFFFF" : colors.income }}>
-                          {formatUsd(amount, { compact: true })}
-                        </Text>
-                      ) : null}
+                      <Text className="text-[14px] font-medium text-[#1C1C1E]">{cell.day}</Text>
+                      <View className="h-4 items-center justify-center">
+                        {amount !== undefined ? (
+                          <Text className="text-[11px] font-semibold" style={{ color: colors.income }}>
+                            {formatUsd(amount, { compact: true })}
+                          </Text>
+                        ) : null}
+                      </View>
                     </Pressable>
                   )
                 })}

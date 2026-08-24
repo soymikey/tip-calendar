@@ -30,12 +30,12 @@ function netForShift(shift: Shift, restaurants: Restaurant[]): Cents {
 export function summarizeCalendar(input: {
   shifts: Shift[]
   restaurants: Restaurant[]
-  today: LocalDate
+  weekAnchor: LocalDate
   year: number
   month: number
   weekStartsOn: WeekStartsOn
 }): CalendarSummary {
-  const weekStart = startOfWeek(input.today, input.weekStartsOn)
+  const weekStart = startOfWeek(input.weekAnchor, input.weekStartsOn)
   const monthPrefix = `${input.year}-${String(input.month).padStart(2, "0")}`
   const byDate = new Map<LocalDate, Cents>()
   let weekCents = 0
