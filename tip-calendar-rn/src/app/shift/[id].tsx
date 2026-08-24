@@ -11,9 +11,12 @@ export default function EditShiftScreen() {
   const rawId = useLocalSearchParams<{ id?: string | string[] }>().id
   const shiftId = decodeURIComponent(Array.isArray(rawId) ? (rawId[0] ?? "") : (rawId ?? ""))
   const shift = state.shifts.find((item) => item.id === shiftId)
-  const restaurant = shift
+  const defaultRestaurant = shift
     ? state.restaurants.find((item) => item.id === shift.restaurantId)
     : undefined
+  const [restaurantId, setRestaurantId] = useState(defaultRestaurant?.id)
+  const restaurant =
+    state.restaurants.find((item) => item.id === restaurantId) ?? defaultRestaurant
 
   if (!shift || !restaurant) {
     return <Redirect href="/(tabs)" />
@@ -25,8 +28,11 @@ export default function EditShiftScreen() {
       mode="edit"
       localDate={shift.localDate}
       restaurant={restaurant}
-      initialDraft={fromShift(shift)}
+      restaurants={state.restaurants}
+      initialDraft={fromShift(shift, restaurant)}
       saving={saving}
+      timeFormat={state.preferences.timeFormat}
+      onRestaurantChange={(next) => setRestaurantId(next.id)}
       onCancel={() => router.back()}
       onSave={async (draft) => {
         if (saving) {

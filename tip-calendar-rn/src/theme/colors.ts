@@ -7,5 +7,6 @@ export const colors = {
   hairline: "#E0E0E0",
   income: "#1F7A4D",
   danger: "#D70015",
+  warning: "#FF9500",
   overlay: "rgba(0,0,0,0.4)",
 } as const

@@ -1,12 +1,17 @@
 import { parseLocalDate } from "./calendar"
 import type { Cents } from "./money"
 import { addCents } from "./money"
-import type { Restaurant, ShiftTag, TipOutRule } from "./restaurant"
+import type { PayType, Restaurant, ShiftTag, TipOutRule } from "./restaurant"
 
 export type TipOutSnapshot = {
   rule: TipOutRule
   salesCents?: Cents
   amountCents: Cents
+}
+
+export type PaySnapshot = {
+  payType: PayType
+  payAmountCents: Cents
 }
 
 export type Shift = {
@@ -23,6 +28,7 @@ export type Shift = {
   otherIncomeCents: Cents
   salesCents?: Cents
   tipOutSnapshot: TipOutSnapshot
+  paySnapshot?: PaySnapshot
   note?: string
   tag?: ShiftTag
   createdAt: string
@@ -42,7 +48,11 @@ export function createShift(input: {
   otherIncomeCents?: Cents
   salesCents?: Cents
   tipOutSnapshot: TipOutSnapshot
+  paySnapshot?: PaySnapshot
   note?: string
+  tag?: ShiftTag
+  clockIn?: string
+  clockOut?: string
   now?: string
   id?: string
 }): Shift {
@@ -57,13 +67,17 @@ export function createShift(input: {
     restaurantId: input.restaurantId,
     hours: input.hours,
     unpaidBreakHours: input.unpaidBreakHours ?? 0,
+    clockIn: input.clockIn,
+    clockOut: input.clockOut,
     overnight: input.overnight ?? false,
     cashTipsCents: input.cashTipsCents ?? 0,
     cardTipsCents: input.cardTipsCents ?? 0,
     otherIncomeCents: input.otherIncomeCents ?? 0,
     salesCents: input.salesCents,
     tipOutSnapshot: input.tipOutSnapshot,
+    paySnapshot: input.paySnapshot,
     note: input.note,
+    tag: input.tag,
     createdAt: now,
     updatedAt: now,
   }

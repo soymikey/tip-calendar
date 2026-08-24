@@ -63,8 +63,10 @@ function formatClock(hhmm: string, timeFormat: "12h" | "24h"): string {
 }
 
 function restaurantForShift(shift: Shift, restaurants: Restaurant[]): Restaurant {
-  return (
-    restaurants.find((item) => item.id === shift.restaurantId) ?? {
+  const found = restaurants.find((item) => item.id === shift.restaurantId)
+  const base =
+    found ??
+    ({
       id: shift.restaurantId,
       name: "Unknown restaurant",
       isDefault: false,
@@ -74,8 +76,15 @@ function restaurantForShift(shift: Shift, restaurants: Restaurant[]): Restaurant
       defaultTipOutRule: { type: "none" },
       createdAt: "",
       updatedAt: "",
-    }
-  )
+    } as Restaurant)
+  if (!shift.paySnapshot) {
+    return base
+  }
+  return {
+    ...base,
+    payType: shift.paySnapshot.payType,
+    payAmountCents: shift.paySnapshot.payAmountCents,
+  }
 }
 
 function incomeForShift(shift: Shift, restaurant: Restaurant) {
