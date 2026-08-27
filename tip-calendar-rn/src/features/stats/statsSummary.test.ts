@@ -12,10 +12,12 @@ function shift(localDate: string, cashTipsCents: number, hours = 5) {
   return createShift({
     localDate,
     restaurantId: restaurant.id,
+    restaurantName: restaurant.name,
     hours,
     cashTipsCents,
     cardTipsCents: 0,
-    tipOutSnapshot: { rule: { type: "none" }, amountCents: 0 },
+    paySnapshot: { payType: "none", payAmountCents: 0 },
+    tipOutSnapshot: { type: "none", amountCents: 0 },
     now: "2026-08-21T20:00:00.000Z",
     id: `sft_${localDate}_${cashTipsCents}`,
   })
@@ -48,10 +50,12 @@ describe("summarizeStats", () => {
         createShift({
           localDate: "2026-08-21",
           restaurantId: other.id,
+          restaurantName: other.name,
           hours: 4,
           cashTipsCents: 8000,
           cardTipsCents: 0,
-          tipOutSnapshot: { rule: { type: "none" }, amountCents: 0 },
+          paySnapshot: { payType: "none", payAmountCents: 0 },
+          tipOutSnapshot: { type: "none", amountCents: 0 },
           now: "2026-08-21T21:00:00.000Z",
           id: "sft_other",
         }),
@@ -96,5 +100,19 @@ describe("summarizeStats", () => {
     })
     expect(summary.netIncomeCents).toBe(5000)
     expect(summary.days[0]?.localDate).toBe("2026-08-17")
+  })
+
+  it("uses frozen income when the restaurant is gone", () => {
+    const recorded = shift("2026-08-21", 20700, 6.5)
+    const summary = summarizeStats({
+      shifts: [recorded],
+      restaurants: [],
+      mode: "week",
+      weekStart: "2026-08-16",
+      year: 2026,
+      month: 8,
+      weekStartsOn: 0,
+    })
+    expect(summary.netIncomeCents).toBe(20700)
   })
 })

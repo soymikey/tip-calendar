@@ -23,15 +23,17 @@ export function calculationBreakdown(
   const { hours } = resolveShiftHours(draft)
   const payType = draft.payType ?? restaurant.payType
   const payAmount = draft.payAmountCents ?? restaurant.payAmountCents
-  const rule = income.tipOutSnapshot.rule
+  const snapshot = income.tipOutSnapshot
 
   let basis = "Total Tips"
-  if (rule.type === "sales_percent") {
+  if (snapshot.type === "sales_percent") {
     basis = "Sales"
-  } else if (rule.type === "fixed") {
+  } else if (snapshot.type === "fixed") {
     basis = "Fixed amount"
-  } else if (rule.type === "none") {
+  } else if (snapshot.type === "none") {
     basis = "None"
+  } else if (snapshot.type === "manual") {
+    basis = "Manual amount"
   }
 
   const wageValue =
@@ -42,12 +44,14 @@ export function calculationBreakdown(
         : formatUsd(income.wageIncomeCents)
 
   let tipOutLabel = "Tip-out"
-  if (rule.type === "tips_percent") {
-    tipOutLabel = `Tip-out (${rule.percent}% of total tips)`
-  } else if (rule.type === "sales_percent") {
-    tipOutLabel = `Tip-out (${rule.percent}% of sales)`
-  } else if (rule.type === "fixed") {
+  if (snapshot.type === "tips_percent") {
+    tipOutLabel = `Tip-out (${snapshot.percent}% of total tips)`
+  } else if (snapshot.type === "sales_percent") {
+    tipOutLabel = `Tip-out (${snapshot.percent}% of sales)`
+  } else if (snapshot.type === "fixed") {
     tipOutLabel = "Tip-out (fixed)"
+  } else if (snapshot.type === "manual") {
+    tipOutLabel = "Tip-out (manual)"
   }
 
   const hourlyValue =
@@ -83,7 +87,7 @@ export function calculationBreakdown(
     {
       label: tipOutLabel,
       value: income.tipOutCents > 0 ? `-${formatUsd(income.tipOutCents)}` : formatUsd(0),
-      hint: rule.type === "tips_percent" || rule.type === "sales_percent" ? `Calculation basis: ${basis}` : undefined,
+      hint: snapshot.type === "tips_percent" || snapshot.type === "sales_percent" ? `Calculation basis: ${basis}` : undefined,
       tone: "deduct",
     },
     { label: "Net Income", value: formatUsd(income.netIncomeCents), tone: "net" },

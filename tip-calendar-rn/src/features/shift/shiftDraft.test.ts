@@ -45,8 +45,21 @@ describe("shiftDraft", () => {
     const shift = toShift(draft, restaurant, "2026-08-21T20:00:00.000Z")
     expect(shift.localDate).toBe("2026-08-21")
     expect(shift.hours).toBe(6.5)
-    expect(shift.tipOutSnapshot.amountCents).toBe(621)
-    expect(shift.tipOutSnapshot.rule).toEqual({ type: "tips_percent", percent: 3 })
+    expect(shift.tipOutSnapshot).toEqual({
+      type: "tips_percent",
+      baseAmountCents: 20700,
+      percent: 3,
+      amountCents: 621,
+    })
+    expect(shift.restaurantName).toBe("Bluebird")
+    expect(shift.incomeSnapshot.netIncomeCents).toBe(29829)
+  })
+
+  it("keeps restaurant id and name when saving without a restaurant", () => {
+    const existing = toShift(draft, restaurant, "2026-08-21T20:00:00.000Z")
+    const next = toShift({ ...fromShift(existing), hours: 5 }, undefined, "2026-08-22T00:00:00.000Z", existing)
+    expect(next.restaurantId).toBe(existing.restaurantId)
+    expect(next.restaurantName).toBe("Bluebird")
   })
 
   it("lists shifts on one local date", () => {

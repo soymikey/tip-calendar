@@ -3,21 +3,34 @@ import type { Cents } from "./money"
 import { addCents } from "./money"
 import type { PayType, Restaurant, ShiftTag, TipOutRule } from "./restaurant"
 
-export type TipOutSnapshot = {
-  rule: TipOutRule
-  salesCents?: Cents
-  amountCents: Cents
-}
+export type TipOutSnapshot =
+  | { type: "none"; amountCents: 0 }
+  | { type: "fixed"; amountCents: Cents }
+  | { type: "sales_percent"; baseAmountCents: Cents; percent: number; amountCents: Cents }
+  | { type: "tips_percent"; baseAmountCents: Cents; percent: number; amountCents: Cents }
+  | { type: "manual"; amountCents: Cents }
 
 export type PaySnapshot = {
   payType: PayType
   payAmountCents: Cents
 }
 
+export type IncomeSnapshot = {
+  totalTipsCents: Cents
+  wageIncomeCents: Cents
+  otherIncomeCents: Cents
+  grossIncomeCents: Cents
+  tipOutCents: Cents
+  netIncomeCents: Cents
+  effectiveHours: number
+  effectiveHourlyCents: Cents | null
+}
+
 export type Shift = {
   id: string
   localDate: string
   restaurantId: string
+  restaurantName: string
   hours: number
   unpaidBreakHours: number
   clockIn?: string
@@ -28,7 +41,8 @@ export type Shift = {
   otherIncomeCents: Cents
   salesCents?: Cents
   tipOutSnapshot: TipOutSnapshot
-  paySnapshot?: PaySnapshot
+  paySnapshot: PaySnapshot
+  incomeSnapshot: IncomeSnapshot
   note?: string
   tag?: ShiftTag
   createdAt: string
@@ -37,9 +51,25 @@ export type Shift = {
 
 export type ManualTipOut = { type: "manual"; amountCents: Cents }
 
+export function tipOutRuleFromSnapshot(
+  snapshot: TipOutSnapshot,
+): TipOutRule | ManualTipOut {
+  if (snapshot.type === "sales_percent" || snapshot.type === "tips_percent") {
+    return { type: snapshot.type, percent: snapshot.percent }
+  }
+  if (snapshot.type === "fixed") {
+    return { type: "fixed", amountCents: snapshot.amountCents }
+  }
+  if (snapshot.type === "manual") {
+    return { type: "manual", amountCents: snapshot.amountCents }
+  }
+  return { type: "none" }
+}
+
 export function createShift(input: {
   localDate: string
   restaurantId: string
+  restaurantName: string
   hours: number
   unpaidBreakHours?: number
   overnight?: boolean
@@ -48,7 +78,8 @@ export function createShift(input: {
   otherIncomeCents?: Cents
   salesCents?: Cents
   tipOutSnapshot: TipOutSnapshot
-  paySnapshot?: PaySnapshot
+  paySnapshot: PaySnapshot
+  incomeSnapshot?: IncomeSnapshot
   note?: string
   tag?: ShiftTag
   clockIn?: string
@@ -61,21 +92,40 @@ export function createShift(input: {
     throw new Error("Hours must be a finite number")
   }
   const now = input.now ?? new Date().toISOString()
+  const cashTipsCents = input.cashTipsCents ?? 0
+  const cardTipsCents = input.cardTipsCents ?? 0
+  const otherIncomeCents = input.otherIncomeCents ?? 0
+  const unpaidBreakHours = input.unpaidBreakHours ?? 0
+  const overnight = input.overnight ?? false
+  const incomeSnapshot =
+    input.incomeSnapshot ??
+    incomeSnapshotFromParts({
+      paySnapshot: input.paySnapshot,
+      tipOutSnapshot: input.tipOutSnapshot,
+      hours: input.hours,
+      unpaidBreakHours,
+      cashTipsCents,
+      cardTipsCents,
+      otherIncomeCents,
+      salesCents: input.salesCents,
+    })
   return {
-    id: input.id ?? `sft_${now}`,
+    id: input.id ?? crypto.randomUUID(),
     localDate: input.localDate,
     restaurantId: input.restaurantId,
+    restaurantName: input.restaurantName,
     hours: input.hours,
-    unpaidBreakHours: input.unpaidBreakHours ?? 0,
+    unpaidBreakHours,
     clockIn: input.clockIn,
     clockOut: input.clockOut,
-    overnight: input.overnight ?? false,
-    cashTipsCents: input.cashTipsCents ?? 0,
-    cardTipsCents: input.cardTipsCents ?? 0,
-    otherIncomeCents: input.otherIncomeCents ?? 0,
+    overnight,
+    cashTipsCents,
+    cardTipsCents,
+    otherIncomeCents,
     salesCents: input.salesCents,
     tipOutSnapshot: input.tipOutSnapshot,
     paySnapshot: input.paySnapshot,
+    incomeSnapshot,
     note: input.note,
     tag: input.tag,
     createdAt: now,
@@ -145,21 +195,18 @@ function calculateTipOutCents(input: {
   if (input.rule.type === "manual") {
     return {
       amountCents: input.rule.amountCents,
-      snapshot: {
-        rule: { type: "fixed", amountCents: input.rule.amountCents },
-        amountCents: input.rule.amountCents,
-      },
+      snapshot: { type: "manual", amountCents: input.rule.amountCents },
     }
   }
 
   if (input.rule.type === "none") {
-    return { amountCents: 0, snapshot: { rule: input.rule, amountCents: 0 } }
+    return { amountCents: 0, snapshot: { type: "none", amountCents: 0 } }
   }
 
   if (input.rule.type === "fixed") {
     return {
       amountCents: input.rule.amountCents,
-      snapshot: { rule: input.rule, amountCents: input.rule.amountCents },
+      snapshot: { type: "fixed", amountCents: input.rule.amountCents },
     }
   }
 
@@ -168,14 +215,24 @@ function calculateTipOutCents(input: {
     const amountCents = Math.round((salesCents * input.rule.percent) / 100)
     return {
       amountCents,
-      snapshot: { rule: input.rule, salesCents, amountCents },
+      snapshot: {
+        type: "sales_percent",
+        baseAmountCents: salesCents,
+        percent: input.rule.percent,
+        amountCents,
+      },
     }
   }
 
   const amountCents = Math.round((input.totalTipsCents * input.rule.percent) / 100)
   return {
     amountCents,
-    snapshot: { rule: input.rule, amountCents },
+    snapshot: {
+      type: "tips_percent",
+      baseAmountCents: input.totalTipsCents,
+      percent: input.rule.percent,
+      amountCents,
+    },
   }
 }
 
@@ -213,5 +270,48 @@ export function calculateShiftIncome(input: ShiftIncomeInput): ShiftIncome {
     effectiveHours,
     effectiveHourlyCents,
     tipOutSnapshot: tipOut.snapshot,
+  }
+}
+
+export function incomeSnapshotFromParts(input: {
+  paySnapshot: PaySnapshot
+  tipOutSnapshot: TipOutSnapshot
+  hours: number
+  unpaidBreakHours: number
+  cashTipsCents: Cents
+  cardTipsCents: Cents
+  otherIncomeCents: Cents
+  salesCents?: Cents
+}): IncomeSnapshot {
+  const now = new Date().toISOString()
+  const restaurant: Restaurant = {
+    id: "snapshot",
+    name: "snapshot",
+    payType: input.paySnapshot.payType,
+    payAmountCents: input.paySnapshot.payAmountCents,
+    creditCardTipPayout: "same_day",
+    defaultTipOutRule: { type: "none" },
+    createdAt: now,
+    updatedAt: now,
+  }
+  const income = calculateShiftIncome({
+    restaurant,
+    hours: input.hours,
+    unpaidBreakHours: input.unpaidBreakHours,
+    cashTipsCents: input.cashTipsCents,
+    cardTipsCents: input.cardTipsCents,
+    otherIncomeCents: input.otherIncomeCents,
+    salesCents: input.salesCents,
+    tipOutOverride: tipOutRuleFromSnapshot(input.tipOutSnapshot),
+  })
+  return {
+    totalTipsCents: income.totalTipsCents,
+    wageIncomeCents: income.wageIncomeCents,
+    otherIncomeCents: income.otherIncomeCents,
+    grossIncomeCents: income.grossIncomeCents,
+    tipOutCents: income.tipOutCents,
+    netIncomeCents: income.netIncomeCents,
+    effectiveHours: income.effectiveHours,
+    effectiveHourlyCents: income.effectiveHourlyCents,
   }
 }

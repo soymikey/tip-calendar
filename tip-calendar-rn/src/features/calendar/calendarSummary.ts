@@ -11,8 +11,8 @@ export type CalendarSummary = {
   hourlyCents: Cents | null
 }
 
-function netForShift(shift: Shift, restaurants: Restaurant[]): Cents {
-  return netIncomeCentsForShift(shift, restaurants)
+function netForShift(shift: Shift): Cents {
+  return netIncomeCentsForShift(shift)
 }
 
 export function summarizeCalendar(input: {
@@ -31,7 +31,7 @@ export function summarizeCalendar(input: {
   let monthHours = 0
 
   for (const shift of input.shifts) {
-    const net = netForShift(shift, input.restaurants)
+    const net = netForShift(shift)
     byDate.set(shift.localDate, (byDate.get(shift.localDate) ?? 0) + net)
     if (startOfWeek(shift.localDate, input.weekStartsOn) === weekStart) {
       weekCents += net

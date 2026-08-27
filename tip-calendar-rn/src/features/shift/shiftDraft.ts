@@ -3,6 +3,8 @@ import {
   calculateHoursFromClock,
   calculateShiftIncome,
   createShift,
+  tipOutRuleFromSnapshot,
+  type ManualTipOut,
   type Shift,
   type ShiftIncome,
 } from "../../domain/shift"
@@ -23,7 +25,7 @@ export type ShiftDraft = {
   useClock?: boolean
   payType?: PayType
   payAmountCents?: number
-  tipOutRule?: TipOutRule
+  tipOutRule?: TipOutRule | ManualTipOut
 }
 
 export function resolveShiftHours(draft: ShiftDraft): { hours: number; overnight: boolean } {
@@ -62,13 +64,36 @@ export function canSaveShift(draft: ShiftDraft): boolean {
   return resolveShiftHours(draft).hours > 0
 }
 
-export function toShift(draft: ShiftDraft, restaurant: Restaurant, now: string): Shift {
+export function toShift(
+  draft: ShiftDraft,
+  restaurant: Restaurant | undefined,
+  now: string,
+  existing?: Shift,
+): Shift {
+  const effectiveRestaurant =
+    restaurant ??
+    (existing
+      ? {
+          id: existing.restaurantId,
+          name: existing.restaurantName,
+          payType: draft.payType ?? existing.paySnapshot.payType,
+          payAmountCents: draft.payAmountCents ?? existing.paySnapshot.payAmountCents,
+          creditCardTipPayout: "same_day" as const,
+          defaultTipOutRule: { type: "none" as const },
+          createdAt: existing.createdAt,
+          updatedAt: existing.updatedAt,
+        }
+      : undefined)
+  if (!effectiveRestaurant) {
+    throw new Error("Restaurant is required to save a new shift")
+  }
   const { hours, overnight } = resolveShiftHours(draft)
-  const effective = restaurantForDraft(restaurant, draft)
-  const income = previewShiftIncome(draft, restaurant)
+  const income = previewShiftIncome(draft, effectiveRestaurant)
+  const paySource = restaurantForDraft(effectiveRestaurant, draft)
   return createShift({
     localDate: draft.localDate,
-    restaurantId: restaurant.id,
+    restaurantId: effectiveRestaurant.id,
+    restaurantName: restaurant?.name ?? existing?.restaurantName ?? effectiveRestaurant.name,
     hours,
     unpaidBreakHours: draft.unpaidBreakHours ?? 0,
     overnight,
@@ -80,8 +105,18 @@ export function toShift(draft: ShiftDraft, restaurant: Restaurant, now: string):
     salesCents: draft.salesCents,
     tipOutSnapshot: income.tipOutSnapshot,
     paySnapshot: {
-      payType: effective.payType,
-      payAmountCents: effective.payAmountCents,
+      payType: paySource.payType,
+      payAmountCents: paySource.payAmountCents,
+    },
+    incomeSnapshot: {
+      totalTipsCents: income.totalTipsCents,
+      wageIncomeCents: income.wageIncomeCents,
+      otherIncomeCents: income.otherIncomeCents,
+      grossIncomeCents: income.grossIncomeCents,
+      tipOutCents: income.tipOutCents,
+      netIncomeCents: income.netIncomeCents,
+      effectiveHours: income.effectiveHours,
+      effectiveHourlyCents: income.effectiveHourlyCents,
     },
     note: draft.note?.trim() ? draft.note.trim() : undefined,
     tag: draft.tag,
@@ -104,19 +139,19 @@ export function fromShift(shift: Shift, restaurant?: Restaurant): ShiftDraft {
     clockIn: shift.clockIn,
     clockOut: shift.clockOut,
     useClock: Boolean(shift.clockIn && shift.clockOut),
-    payType: shift.paySnapshot?.payType ?? restaurant?.payType,
-    payAmountCents: shift.paySnapshot?.payAmountCents ?? restaurant?.payAmountCents,
-    tipOutRule: shift.tipOutSnapshot.rule,
+    payType: shift.paySnapshot.payType,
+    payAmountCents: shift.paySnapshot.payAmountCents,
+    tipOutRule: tipOutRuleFromSnapshot(shift.tipOutSnapshot),
   }
 }
 
 export function toUpdatedShift(
   draft: ShiftDraft,
-  restaurant: Restaurant,
+  restaurant: Restaurant | undefined,
   existing: Shift,
   now: string,
 ): Shift {
-  const created = toShift(draft, restaurant, now)
+  const created = toShift(draft, restaurant, now, existing)
   return {
     ...created,
     id: existing.id,

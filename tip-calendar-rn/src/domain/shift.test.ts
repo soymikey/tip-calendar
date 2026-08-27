@@ -78,7 +78,29 @@ describe("calculateShiftIncome", () => {
     expect(income.netIncomeCents).toBe(2000)
   })
 
-  it("applies a tips-percent tip-out from total tips", () => {
+  it("snapshots sales-percent tip-out with base, rate, and amount", () => {
+    const restaurant = createRestaurant({
+      name: "Sales Place",
+      payType: "none",
+      defaultTipOutRule: { type: "sales_percent", percent: 3 },
+    })
+    const income = calculateShiftIncome({
+      restaurant,
+      hours: 5,
+      cashTipsCents: 1000,
+      cardTipsCents: 1000,
+      salesCents: 85000,
+    })
+    expect(income.tipOutSnapshot).toEqual({
+      type: "sales_percent",
+      baseAmountCents: 85000,
+      percent: 3,
+      amountCents: 2550,
+    })
+    expect(income.tipOutCents).toBe(2550)
+  })
+
+  it("snapshots tips-percent using total tips as the base", () => {
     const restaurant = createRestaurant({
       name: "Tip Out Place",
       payType: "none",
@@ -90,33 +112,16 @@ describe("calculateShiftIncome", () => {
       cashTipsCents: 4000,
       cardTipsCents: 6000,
     })
-    expect(income.totalTipsCents).toBe(10000)
-    expect(income.tipOutCents).toBe(300)
-    expect(income.netIncomeCents).toBe(9700)
+    expect(income.tipOutSnapshot).toEqual({
+      type: "tips_percent",
+      baseAmountCents: 10000,
+      percent: 3,
+      amountCents: 300,
+    })
   })
 
-  it("applies a sales-percent tip-out from sales", () => {
-    const restaurant = createRestaurant({
-      name: "Sales Place",
-      payType: "none",
-      defaultTipOutRule: { type: "sales_percent", percent: 2 },
-    })
-    const income = calculateShiftIncome({
-      restaurant,
-      hours: 5,
-      cashTipsCents: 1000,
-      cardTipsCents: 1000,
-      salesCents: 50000,
-    })
-    expect(income.tipOutCents).toBe(1000)
-    expect(income.netIncomeCents).toBe(1000)
-  })
-
-  it("lets a shift override restaurant tip-out with a manual amount", () => {
-    const restaurant = createRestaurant({
-      name: "Override Place",
-      defaultTipOutRule: { type: "tips_percent", percent: 5 },
-    })
+  it("snapshots a manual amount as manual, not fixed", () => {
+    const restaurant = createRestaurant({ name: "Override Place" })
     const income = calculateShiftIncome({
       restaurant,
       hours: 5,
@@ -124,27 +129,43 @@ describe("calculateShiftIncome", () => {
       cardTipsCents: 0,
       tipOutOverride: { type: "manual", amountCents: 250 },
     })
-    expect(income.tipOutCents).toBe(250)
-    expect(income.netIncomeCents).toBe(9750)
+    expect(income.tipOutSnapshot).toEqual({ type: "manual", amountCents: 250 })
   })
 })
 
 describe("createShift", () => {
-  it("stores a local date and money in cents", () => {
+  it("stores restaurantName, paySnapshot, and incomeSnapshot on create", () => {
     const shift = createShift({
       localDate: "2026-08-21",
       restaurantId: "rst_1",
+      restaurantName: "Bluebird",
       hours: 6.5,
       cashTipsCents: 8500,
       cardTipsCents: 12200,
-      tipOutSnapshot: { rule: { type: "none" }, amountCents: 0 },
+      paySnapshot: { payType: "hourly", payAmountCents: 1500 },
+      tipOutSnapshot: { type: "none", amountCents: 0 },
       now: "2026-08-21T20:00:00.000Z",
+      id: "sft_1",
     })
-    expect(shift.id).toBe("sft_2026-08-21T20:00:00.000Z")
-    expect(shift.localDate).toBe("2026-08-21")
-    expect(shift.unpaidBreakHours).toBe(0)
-    expect(shift.overnight).toBe(false)
-    expect(shift.otherIncomeCents).toBe(0)
+    expect(shift.id).toBe("sft_1")
+    expect(shift.restaurantName).toBe("Bluebird")
+    expect(shift.paySnapshot).toEqual({ payType: "hourly", payAmountCents: 1500 })
+    expect(shift.incomeSnapshot.netIncomeCents).toBe(30450)
+    expect(shift.incomeSnapshot.tipOutCents).toBe(shift.tipOutSnapshot.amountCents)
+  })
+
+  it("uses a UUID when id is omitted", () => {
+    const shift = createShift({
+      localDate: "2026-08-21",
+      restaurantId: "rst_1",
+      restaurantName: "Bluebird",
+      hours: 1,
+      paySnapshot: { payType: "none", payAmountCents: 0 },
+      tipOutSnapshot: { type: "none", amountCents: 0 },
+    })
+    expect(shift.id).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
+    )
   })
 
   it("rejects a non-local date", () => {
@@ -152,8 +173,10 @@ describe("createShift", () => {
       createShift({
         localDate: "2026/08/21",
         restaurantId: "rst_1",
+        restaurantName: "Bluebird",
         hours: 1,
-        tipOutSnapshot: { rule: { type: "none" }, amountCents: 0 },
+        paySnapshot: { payType: "none", payAmountCents: 0 },
+        tipOutSnapshot: { type: "none", amountCents: 0 },
       }),
     ).toThrow("Date must use YYYY-MM-DD")
   })

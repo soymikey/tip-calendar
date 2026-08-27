@@ -13,10 +13,12 @@ function shift(localDate: string, cashTipsCents: number, hours = 5) {
   return createShift({
     localDate,
     restaurantId: restaurant.id,
+    restaurantName: restaurant.name,
     hours,
     cashTipsCents,
     cardTipsCents: 0,
-    tipOutSnapshot: { rule: { type: "none" }, amountCents: 0 },
+    paySnapshot: { payType: "none", payAmountCents: 0 },
+    tipOutSnapshot: { type: "none", amountCents: 0 },
     now: "2026-08-21T20:00:00.000Z",
     id: `sft_${localDate}_${cashTipsCents}`,
   })

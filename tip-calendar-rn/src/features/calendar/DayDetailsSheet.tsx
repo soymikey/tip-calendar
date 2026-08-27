@@ -13,7 +13,8 @@ import { SymbolView } from "expo-symbols"
 import { parseLocalDate } from "@/domain/calendar"
 import { formatUsd } from "@/domain/money"
 import type { Restaurant } from "@/domain/restaurant"
-import { calculateShiftIncome, type Shift } from "@/domain/shift"
+import type { Shift } from "@/domain/shift"
+import { incomeForShift } from "@/features/shift/shiftIncome"
 import { colors } from "@/theme/colors"
 
 type DayDetailsSheetProps = {
@@ -76,27 +77,11 @@ function restaurantForShift(shift: Shift, restaurants: Restaurant[]): Restaurant
       createdAt: "",
       updatedAt: "",
     } as Restaurant)
-  if (!shift.paySnapshot) {
-    return base
-  }
   return {
     ...base,
     payType: shift.paySnapshot.payType,
     payAmountCents: shift.paySnapshot.payAmountCents,
   }
-}
-
-function incomeForShift(shift: Shift, restaurant: Restaurant) {
-  return calculateShiftIncome({
-    restaurant,
-    hours: shift.hours,
-    unpaidBreakHours: shift.unpaidBreakHours,
-    cashTipsCents: shift.cashTipsCents,
-    cardTipsCents: shift.cardTipsCents,
-    otherIncomeCents: shift.otherIncomeCents,
-    salesCents: shift.salesCents,
-    tipOutOverride: shift.tipOutSnapshot.rule,
-  })
 }
 
 function wageLabel(shift: Shift, restaurant: Restaurant): string {
@@ -141,7 +126,7 @@ export function DayDetailsSheet({
 
   const cards = shifts.map((shift) => {
     const restaurant = restaurantForShift(shift, restaurants)
-    return { shift, restaurant, income: incomeForShift(shift, restaurant) }
+    return { shift, restaurant, income: incomeForShift(shift) }
   })
   const dailyTotal = cards.reduce((sum, card) => sum + card.income.netIncomeCents, 0)
 

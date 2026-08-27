@@ -8,7 +8,7 @@ import {
 import type { Cents } from "../../domain/money"
 import type { Restaurant } from "../../domain/restaurant"
 import type { Shift } from "../../domain/shift"
-import { incomeForShift, netIncomeCentsForShift } from "../shift/shiftIncome"
+import { netIncomeCentsForShift } from "../shift/shiftIncome"
 
 export type StatsMode = "week" | "month"
 
@@ -75,12 +75,11 @@ export function summarizeStats(input: {
   const byDate = new Map<LocalDate, Cents>()
 
   for (const shift of inRange) {
-    const restaurant = input.restaurants.find((item) => item.id === shift.restaurantId)
-    const net = netIncomeCentsForShift(shift, input.restaurants)
-    const tips = shift.cashTipsCents + shift.cardTipsCents
-    const hours = Math.max(0, shift.hours - shift.unpaidBreakHours)
+    const net = netIncomeCentsForShift(shift)
+    const tips = shift.incomeSnapshot.totalTipsCents
+    const hours = shift.incomeSnapshot.effectiveHours
     netIncomeCents += net
-    totalTipsCents += restaurant ? incomeForShift(shift, restaurant).totalTipsCents : tips
+    totalTipsCents += tips
     hoursWorked += hours
     byDate.set(shift.localDate, (byDate.get(shift.localDate) ?? 0) + net)
   }

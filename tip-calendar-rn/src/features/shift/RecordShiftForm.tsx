@@ -51,6 +51,16 @@ function formatShiftDateTitle(localDate: string, weekday: "short" | "long"): str
   })
 }
 
+function tipOutRuleForForm(rule: ShiftDraft["tipOutRule"] | undefined, fallback: TipOutRule): TipOutRule {
+  if (!rule) {
+    return fallback
+  }
+  if (rule.type === "manual") {
+    return { type: "fixed", amountCents: rule.amountCents }
+  }
+  return rule
+}
+
 function hoursToField(hours: number): string {
   return hours > 0 ? String(hours) : ""
 }
@@ -141,17 +151,17 @@ export function RecordShiftForm({
     centsToField(initialDraft?.payAmountCents ?? restaurant.payAmountCents),
   )
   const [tipOutRule, setTipOutRule] = useState<TipOutRule>(
-    initialDraft?.tipOutRule ?? restaurant.defaultTipOutRule,
+    tipOutRuleForForm(initialDraft?.tipOutRule, restaurant.defaultTipOutRule),
   )
   const [tipAmountText, setTipAmountText] = useState(() =>
-    initialDraft?.tipOutRule?.type === "fixed"
+    initialDraft?.tipOutRule?.type === "fixed" || initialDraft?.tipOutRule?.type === "manual"
       ? centsToField(initialDraft.tipOutRule.amountCents)
       : restaurant.defaultTipOutRule.type === "fixed"
         ? centsToField(restaurant.defaultTipOutRule.amountCents)
         : "",
   )
   const [tipPercentText, setTipPercentText] = useState(() => {
-    const rule = initialDraft?.tipOutRule ?? restaurant.defaultTipOutRule
+    const rule = tipOutRuleForForm(initialDraft?.tipOutRule, restaurant.defaultTipOutRule)
     return rule.type === "sales_percent" || rule.type === "tips_percent" ? String(rule.percent) : ""
   })
   const [salesText, setSalesText] = useState(() => centsToField(initialDraft?.salesCents ?? 0))

@@ -12,11 +12,13 @@ const restaurant = createRestaurant({
 const shift = createShift({
   localDate: "2026-08-21",
   restaurantId: restaurant.id,
+  restaurantName: restaurant.name,
   hours: 6.5,
   cashTipsCents: 12000,
   cardTipsCents: 8700,
   note: 'Late "rush"',
-  tipOutSnapshot: { rule: { type: "none" }, amountCents: 0 },
+  paySnapshot: { payType: "none", payAmountCents: 0 },
+  tipOutSnapshot: { type: "none", amountCents: 0 },
   now: "2026-08-21T20:00:00.000Z",
   id: "sft_1",
 })

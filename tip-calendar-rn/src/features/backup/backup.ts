@@ -1,7 +1,7 @@
 import type { Restaurant } from "../../domain/restaurant"
 import type { Shift } from "../../domain/shift"
 import { emptyState, type AppState } from "../../storage/types"
-import { incomeForShift, netIncomeCentsForShift } from "../shift/shiftIncome"
+import { displayRestaurantName, incomeForShift } from "../shift/shiftIncome"
 
 function csvCell(value: string | number): string {
   const text = String(value)
@@ -33,19 +33,18 @@ export function exportCsv(state: AppState): string {
 }
 
 function rowForShift(shift: Shift, restaurants: Restaurant[]): string {
-  const restaurant = restaurants.find((item) => item.id === shift.restaurantId)
-  const income = restaurant ? incomeForShift(shift, restaurant) : null
-  const net = netIncomeCentsForShift(shift, restaurants)
+  const name = displayRestaurantName(shift, restaurants)
+  const income = incomeForShift(shift)
   return [
     csvCell(shift.localDate),
-    csvCell(restaurant?.name ?? ""),
+    csvCell(name),
     csvCell(shift.hours),
     csvCell((shift.cashTipsCents / 100).toFixed(2)),
     csvCell((shift.cardTipsCents / 100).toFixed(2)),
     csvCell((shift.otherIncomeCents / 100).toFixed(2)),
-    csvCell(((income?.tipOutCents ?? shift.tipOutSnapshot.amountCents) / 100).toFixed(2)),
-    csvCell(((income?.wageIncomeCents ?? 0) / 100).toFixed(2)),
-    csvCell((net / 100).toFixed(2)),
+    csvCell((income.tipOutCents / 100).toFixed(2)),
+    csvCell((income.wageIncomeCents / 100).toFixed(2)),
+    csvCell((income.netIncomeCents / 100).toFixed(2)),
     csvCell(shift.tag ?? ""),
     csvCell(shift.note ?? ""),
     csvCell(shift.overnight ? "yes" : "no"),
