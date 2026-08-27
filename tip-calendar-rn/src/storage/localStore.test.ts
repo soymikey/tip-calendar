@@ -120,4 +120,17 @@ describe("localStore", () => {
     await expect(store.load()).resolves.toEqual(emptyState)
     expect(await memory.getItem("tips-calendar/v1")).toBe(raw)
   })
+
+  it("does not persist empty collections over a corrupt version 1 blob", async () => {
+    const memory = createMemoryStore()
+    const raw = JSON.stringify({
+      version: 1,
+      restaurants: [{ id: "rst_1" }],
+      shifts: null,
+    })
+    await memory.setItem("tips-calendar/v1", raw)
+    const store = createLocalStore(memory)
+    await expect(store.load()).resolves.toEqual(emptyState)
+    expect(await memory.getItem("tips-calendar/v1")).toBe(raw)
+  })
 })

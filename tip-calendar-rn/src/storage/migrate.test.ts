@@ -163,4 +163,10 @@ describe("parsePersistedState", () => {
       "This file is not a Tips Calendar backup.",
     )
   })
+
+  it("throws on import of version 1 without restaurant and shift arrays", () => {
+    expect(() => parsePersistedState({ version: 1 }, "import")).toThrow(
+      "This file is not a Tips Calendar backup.",
+    )
+  })
 })

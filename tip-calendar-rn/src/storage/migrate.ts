@@ -240,25 +240,28 @@ export function migrateToV2(v1: unknown, mode: PersistMode): AppState {
   }
 }
 
-export function isRecognizedPersistedDocument(value: unknown): boolean {
-  if (!isRecord(value)) {
+export function isRecognizedPersistedDocument(value: unknown): value is Record<string, unknown> & {
+  restaurants: unknown[]
+  shifts: unknown[]
+} {
+  if (!isRecord(value) || !Array.isArray(value.restaurants) || !Array.isArray(value.shifts)) {
     return false
   }
-  if (value.schemaVersion === 2 && Array.isArray(value.restaurants) && Array.isArray(value.shifts)) {
+  if (value.schemaVersion === 2) {
     return true
   }
   return value.version === 1 && !("schemaVersion" in value)
 }
 
 export function parsePersistedState(value: unknown, mode: PersistMode): AppState {
-  if (!isRecord(value)) {
+  if (!isRecognizedPersistedDocument(value)) {
     if (mode === "load") {
       return emptyState
     }
     throw new Error(BACKUP_ERROR)
   }
 
-  if (value.schemaVersion === 2 && Array.isArray(value.restaurants) && Array.isArray(value.shifts)) {
+  if (value.schemaVersion === 2) {
     return {
       schemaVersion: 2,
       restaurants: value.restaurants as Restaurant[],
@@ -270,12 +273,5 @@ export function parsePersistedState(value: unknown, mode: PersistMode): AppState
     }
   }
 
-  if (value.version === 1 && !("schemaVersion" in value)) {
-    return migrateToV2(value, mode)
-  }
-
-  if (mode === "load") {
-    return emptyState
-  }
-  throw new Error(BACKUP_ERROR)
+  return migrateToV2(value, mode)
 }
