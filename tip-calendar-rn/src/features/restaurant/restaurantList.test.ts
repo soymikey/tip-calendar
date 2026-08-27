@@ -1,5 +1,11 @@
 import { createRestaurant } from "../../domain/restaurant"
-import { nextDefaultRestaurantId, paySummary, removeRestaurant, upsertRestaurant } from "./restaurantList"
+import {
+  defaultRestaurantIdAfterSave,
+  nextDefaultRestaurantId,
+  paySummary,
+  removeRestaurant,
+  upsertRestaurant,
+} from "./restaurantList"
 
 const bluebird = createRestaurant({
   name: "Bluebird",
@@ -37,6 +43,41 @@ describe("nextDefaultRestaurantId", () => {
 
   it("is null when no restaurants remain", () => {
     expect(nextDefaultRestaurantId([], "rst_1")).toBeNull()
+  })
+})
+
+describe("defaultRestaurantIdAfterSave", () => {
+  it("keeps the other default when unchecking a non-default", () => {
+    expect(
+      defaultRestaurantIdAfterSave({
+        restaurants: [bluebird, harbor],
+        restaurantId: bluebird.id,
+        makeDefault: false,
+        currentDefaultId: harbor.id,
+      }),
+    ).toBe("rst_2")
+  })
+
+  it("moves default to the second restaurant when unchecking the first of many", () => {
+    expect(
+      defaultRestaurantIdAfterSave({
+        restaurants: [bluebird, harbor],
+        restaurantId: bluebird.id,
+        makeDefault: false,
+        currentDefaultId: bluebird.id,
+      }),
+    ).toBe("rst_2")
+  })
+
+  it("keeps the last restaurant as default even when unchecked", () => {
+    expect(
+      defaultRestaurantIdAfterSave({
+        restaurants: [bluebird],
+        restaurantId: bluebird.id,
+        makeDefault: false,
+        currentDefaultId: bluebird.id,
+      }),
+    ).toBe("rst_1")
   })
 })
 

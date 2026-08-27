@@ -67,7 +67,7 @@ export function parseBackupJson(raw: string): AppState {
     version: 1,
     restaurants: parsed.restaurants,
     shifts: parsed.shifts,
-    preferences: parsed.preferences ?? emptyState.preferences,
+    preferences: { ...emptyState.preferences, ...parsed.preferences },
   }
 }
 

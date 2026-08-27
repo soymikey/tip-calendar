@@ -17,7 +17,7 @@ export function createLocalStore(kv: KeyValueStore = AsyncStorage) {
           version: 1,
           restaurants: parsed.restaurants,
           shifts: parsed.shifts,
-          preferences: parsed.preferences ?? emptyState.preferences,
+          preferences: { ...emptyState.preferences, ...parsed.preferences },
         }
       } catch {
         return emptyState

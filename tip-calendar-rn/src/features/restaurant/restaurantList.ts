@@ -25,6 +25,22 @@ export function nextDefaultRestaurantId(
   return restaurants[0]?.id ?? null
 }
 
+export function defaultRestaurantIdAfterSave(input: {
+  restaurants: Restaurant[]
+  restaurantId: string
+  makeDefault: boolean
+  currentDefaultId: string | null
+}): string | null {
+  if (input.makeDefault) {
+    return input.restaurantId
+  }
+  if (input.currentDefaultId !== input.restaurantId) {
+    return nextDefaultRestaurantId(input.restaurants, input.currentDefaultId)
+  }
+  const other = input.restaurants.find((item) => item.id !== input.restaurantId)
+  return other?.id ?? input.restaurantId
+}
+
 export function paySummary(restaurant: Restaurant): string {
   if (restaurant.payType === "hourly") {
     return `Hourly ${formatUsd(restaurant.payAmountCents)}/hr`

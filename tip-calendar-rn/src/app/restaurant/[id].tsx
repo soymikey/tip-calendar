@@ -19,7 +19,12 @@ import { createRestaurant } from "@/domain/restaurant"
 import { StepBasePay } from "@/features/onboarding/StepBasePay"
 import { StepTipOut } from "@/features/onboarding/StepTipOut"
 import type { OnboardingDraft } from "@/features/onboarding/onboardingDraft"
-import { nextDefaultRestaurantId, removeRestaurant, upsertRestaurant } from "@/features/restaurant/restaurantList"
+import {
+  defaultRestaurantIdAfterSave,
+  nextDefaultRestaurantId,
+  removeRestaurant,
+  upsertRestaurant,
+} from "@/features/restaurant/restaurantList"
 import { useAppState } from "@/state/AppStateContext"
 import { colors } from "@/theme/colors"
 
@@ -71,14 +76,12 @@ export default function RestaurantEditorScreen() {
           })
       await updateState((current) => {
         const restaurants = upsertRestaurant(current.restaurants, restaurant)
-        const defaultRestaurantId = isDefault
-          ? restaurant.id
-          : nextDefaultRestaurantId(
-              restaurants,
-              current.preferences.defaultRestaurantId === restaurant.id
-                ? null
-                : current.preferences.defaultRestaurantId,
-            )
+        const defaultRestaurantId = defaultRestaurantIdAfterSave({
+          restaurants,
+          restaurantId: restaurant.id,
+          makeDefault: isDefault,
+          currentDefaultId: current.preferences.defaultRestaurantId,
+        })
         return {
           ...current,
           restaurants,

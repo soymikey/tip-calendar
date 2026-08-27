@@ -34,6 +34,27 @@ describe("localStore", () => {
     expect(loaded.restaurants).toEqual([restaurant])
   })
 
+  it("fills missing defaultRestaurantId from existing v1 preferences", async () => {
+    const memory = createMemoryStore()
+    await memory.setItem(
+      "tips-calendar/v1",
+      JSON.stringify({
+        version: 1,
+        restaurants: [],
+        shifts: [],
+        preferences: {
+          weekStartsOn: 0,
+          currencySymbol: "$",
+          timeFormat: "12h",
+        },
+      }),
+    )
+    const store = createLocalStore(memory)
+    await expect(store.load()).resolves.toMatchObject({
+      preferences: { defaultRestaurantId: null },
+    })
+  })
+
   it("replaces invalid JSON with an empty state instead of throwing", async () => {
     const memory = createMemoryStore()
     await memory.setItem("tips-calendar/v1", "{not-json")
