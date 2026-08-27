@@ -40,3 +40,13 @@ describe("track", () => {
     await expect(track(AnalyticsEvent.dataDeleted)).resolves.toBeUndefined()
   })
 })
+
+describe("AnalyticsEvent names", () => {
+  it("matches the spec event strings", () => {
+    expect(AnalyticsEvent.shiftSaved).toBe("shift_saved")
+    expect(AnalyticsEvent.onboardingCompleted).toBe("onboarding_completed")
+    expect(AnalyticsEvent.backupExported).toBe("backup_exported")
+    expect(AnalyticsEvent.backupImported).toBe("backup_imported")
+    expect(AnalyticsEvent.dataDeleted).toBe("data_deleted")
+  })
+})

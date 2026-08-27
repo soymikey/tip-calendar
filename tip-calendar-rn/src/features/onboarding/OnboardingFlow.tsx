@@ -4,6 +4,7 @@ import { SafeAreaView } from "react-native-safe-area-context"
 import { SymbolView } from "expo-symbols"
 
 import { PrimaryButton } from "@/components/PrimaryButton"
+import { AnalyticsEvent, onboardingCompletedParams, track } from "@/features/analytics/track"
 import { useAppState } from "@/state/AppStateContext"
 import { colors } from "@/theme/colors"
 
@@ -44,7 +45,7 @@ export function OnboardingFlow() {
     setDraft((current) => reduceOnboarding(current, action))
   }
 
-  async function saveRestaurant(next: OnboardingDraft) {
+  async function saveRestaurant(next: OnboardingDraft, skipped: boolean) {
     if (saving) {
       return
     }
@@ -56,6 +57,7 @@ export function OnboardingFlow() {
         restaurants: [restaurant],
         preferences: { ...current.preferences, defaultRestaurantId: restaurant.id },
       }))
+      await track(AnalyticsEvent.onboardingCompleted, onboardingCompletedParams(skipped))
     } finally {
       setSaving(false)
     }
@@ -69,7 +71,7 @@ export function OnboardingFlow() {
       dispatch({ type: "next" })
       return
     }
-    await saveRestaurant(draft)
+    await saveRestaurant(draft, false)
   }
 
   async function onSkip() {
@@ -78,7 +80,7 @@ export function OnboardingFlow() {
     }
     const next = reduceOnboarding(draft, { type: "skip" })
     setDraft(next)
-    await saveRestaurant(next)
+    await saveRestaurant(next, true)
   }
 
   return (

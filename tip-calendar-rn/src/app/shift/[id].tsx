@@ -1,6 +1,7 @@
 import { Redirect, router, useLocalSearchParams } from "expo-router"
 import { useState } from "react"
 
+import { AnalyticsEvent, shiftSavedParams, track } from "@/features/analytics/track"
 import { RecordShiftForm } from "@/features/shift/RecordShiftForm"
 import { fromShift, replaceShift, restaurantFromShift, toUpdatedShift } from "@/features/shift/shiftDraft"
 import { useAppState } from "@/state/AppStateContext"
@@ -46,6 +47,7 @@ export default function EditShiftScreen() {
             ...current,
             shifts: replaceShift(current.shifts, next),
           }))
+          await track(AnalyticsEvent.shiftSaved, shiftSavedParams(true))
           router.back()
         } finally {
           setSaving(false)

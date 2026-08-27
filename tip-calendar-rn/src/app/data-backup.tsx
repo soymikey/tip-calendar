@@ -4,6 +4,7 @@ import { SafeAreaView } from "react-native-safe-area-context"
 
 import { SettingsGroup, SettingsRow } from "@/components/SettingsRow"
 import { StackHeader } from "@/components/StackHeader"
+import { AnalyticsEvent, track } from "@/features/analytics/track"
 import { dataSizeLabel, exportCsv, exportJson, parseBackupJson } from "@/features/backup/backup"
 import { pickJsonText, shareTextFile } from "@/features/backup/shareBackup"
 import { useAppState } from "@/state/AppStateContext"
@@ -20,9 +21,11 @@ export default function DataBackupScreen() {
     try {
       if (kind === "csv") {
         await shareTextFile("tips-calendar.csv", exportCsv(state), "text/csv")
+        await track(AnalyticsEvent.backupExported, { kind: "csv" })
         return
       }
       await shareTextFile("tips-calendar.json", exportJson(state), "application/json")
+      await track(AnalyticsEvent.backupExported, { kind: "json" })
     } catch (error) {
       Alert.alert("Couldn't export", error instanceof Error ? error.message : "Please try again.")
     } finally {
@@ -50,7 +53,9 @@ export default function DataBackupScreen() {
             text: "Replace Data",
             style: "destructive",
             onPress: () => {
-              void updateState(() => next)
+              void updateState(() => next).then(() =>
+                track(AnalyticsEvent.backupImported),
+              )
             },
           },
         ],
