@@ -54,59 +54,17 @@ describe("parseBackupJson", () => {
     expect(restored.preferences.weekStartsOn).toBe(0)
   })
 
-  it("imports a v1 JSON backup", () => {
-    const restored = parseBackupJson(
-      JSON.stringify({
-        version: 1,
-        restaurants: [
-          {
-            id: "rst_1",
-            name: "Bluebird",
-            isDefault: true,
-            payType: "hourly",
-            payAmountCents: 1500,
-            creditCardTipPayout: "same_day",
-            defaultTipOutRule: { type: "tips_percent", percent: 3 },
-            createdAt: "2026-08-21T20:00:00.000Z",
-            updatedAt: "2026-08-21T20:00:00.000Z",
-          },
-        ],
-        shifts: [
-          {
-            id: "sft_1",
-            localDate: "2026-08-21",
-            restaurantId: "rst_1",
-            hours: 6.5,
-            unpaidBreakHours: 0,
-            overnight: false,
-            cashTipsCents: 8500,
-            cardTipsCents: 12200,
-            otherIncomeCents: 0,
-            tipOutSnapshot: { rule: { type: "tips_percent", percent: 3 }, amountCents: 621 },
-            paySnapshot: { payType: "hourly", payAmountCents: 1500 },
-            createdAt: "2026-08-21T20:00:00.000Z",
-            updatedAt: "2026-08-21T20:00:00.000Z",
-          },
-        ],
-        preferences: { weekStartsOn: 0, currencySymbol: "$", timeFormat: "12h" },
-      }),
-    )
-    expect(restored.schemaVersion).toBe(2)
-    expect(restored.shifts[0]?.id).toBe("sft_1")
-    expect(restored.shifts[0]?.incomeSnapshot.netIncomeCents).toBe(29829)
-  })
-
   it("rejects files that are not a Tips Calendar backup", () => {
     expect(() => parseBackupJson('{"hello":true}')).toThrow("This file is not a Tips Calendar backup.")
   })
 
-  it("rejects a v1 file with a shift missing id", () => {
+  it("rejects version 1 backup files", () => {
     expect(() =>
       parseBackupJson(
         JSON.stringify({
           version: 1,
           restaurants: [],
-          shifts: [{ localDate: "2026-08-21", cashTipsCents: 1 }],
+          shifts: [],
           preferences: { weekStartsOn: 0, currencySymbol: "$", timeFormat: "12h" },
         }),
       ),
