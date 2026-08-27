@@ -1,13 +1,19 @@
+import { useEffect } from "react"
 import { Stack } from "expo-router"
 import { StatusBar } from "expo-status-bar"
 import { SafeAreaProvider } from "react-native-safe-area-context"
 
+import { enableNativeAnalytics } from "@/features/analytics/track"
 import { AppStateProvider, useAppState } from "@/state/AppStateContext"
 import { needsOnboarding } from "@/state/session"
 
 import "../global.css"
 
 export default function RootLayout() {
+  useEffect(() => {
+    void enableNativeAnalytics()
+  }, [])
+
   return (
     <AppStateProvider>
       <SafeAreaProvider>

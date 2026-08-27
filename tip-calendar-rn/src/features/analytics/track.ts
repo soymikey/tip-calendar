@@ -48,3 +48,23 @@ export async function track(name: AnalyticsEventName, params?: AnalyticsParams):
     }
   }
 }
+
+export async function enableNativeAnalytics(): Promise<void> {
+  try {
+    const native = require("./firebaseNative") as typeof import("./firebaseNative")
+    await native.initFirebaseNative()
+    setAnalyticsReporter(async (name, params) => {
+      try {
+        await native.logFirebaseEvent(name, params)
+      } catch {
+        if (__DEV__) {
+          console.warn(`Firebase event skipped: ${name}`)
+        }
+      }
+    })
+  } catch {
+    if (__DEV__) {
+      console.warn("Firebase skipped (Expo Go or native module missing)")
+    }
+  }
+}
