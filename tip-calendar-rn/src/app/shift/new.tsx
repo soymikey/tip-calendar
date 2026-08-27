@@ -11,7 +11,11 @@ export default function NewShiftScreen() {
   const [saving, setSaving] = useState(false)
   const rawDate = useLocalSearchParams<{ date?: string | string[] }>().date
   const localDate = Array.isArray(rawDate) ? rawDate[0] : rawDate
-  const defaultId = state.restaurants.find((item) => item.isDefault)?.id ?? state.restaurants[0]?.id
+  const defaultId =
+    state.preferences.defaultRestaurantId &&
+    state.restaurants.some((item) => item.id === state.preferences.defaultRestaurantId)
+      ? state.preferences.defaultRestaurantId
+      : state.restaurants[0]?.id
   const [restaurantId, setRestaurantId] = useState(defaultId)
   const restaurant =
     state.restaurants.find((item) => item.id === restaurantId) ?? state.restaurants[0]

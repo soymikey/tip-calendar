@@ -16,12 +16,12 @@ export type Preferences = {
   weekStartsOn: 0 | 1 | 2 | 3 | 4 | 5 | 6
   currencySymbol: string
   timeFormat: "12h" | "24h"
+  defaultRestaurantId: string | null
 }
 
 export type Restaurant = {
   id: string
   name: string
-  isDefault: boolean
   payType: PayType
   payAmountCents: Cents
   creditCardTipPayout: CreditCardTipPayout
@@ -32,7 +32,6 @@ export type Restaurant = {
 
 export function createRestaurant(input: {
   name: string
-  isDefault?: boolean
   payType?: PayType
   payAmountCents?: Cents
   creditCardTipPayout?: CreditCardTipPayout
@@ -44,13 +43,10 @@ export function createRestaurant(input: {
   if (name.length === 0) {
     throw new Error("Restaurant name is required")
   }
-
   const now = input.now ?? new Date().toISOString()
-
   return {
-    id: input.id ?? `rst_${now}`,
+    id: input.id ?? crypto.randomUUID(),
     name,
-    isDefault: input.isDefault ?? true,
     payType: input.payType ?? "none",
     payAmountCents: input.payAmountCents ?? 0,
     creditCardTipPayout: input.creditCardTipPayout ?? "same_day",

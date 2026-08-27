@@ -6,29 +6,23 @@ export function upsertRestaurant(
   restaurant: Restaurant,
 ): Restaurant[] {
   const exists = restaurants.some((item) => item.id === restaurant.id)
-  const next = exists
+  return exists
     ? restaurants.map((item) => (item.id === restaurant.id ? restaurant : item))
     : [...restaurants, restaurant]
-
-  if (restaurant.isDefault) {
-    return next.map((item) =>
-      item.id === restaurant.id ? item : { ...item, isDefault: false },
-    )
-  }
-
-  if (next.length > 0 && !next.some((item) => item.isDefault)) {
-    return next.map((item, index) => ({ ...item, isDefault: index === 0 }))
-  }
-
-  return next
 }
 
 export function removeRestaurant(restaurants: Restaurant[], id: string): Restaurant[] {
-  const remaining = restaurants.filter((item) => item.id !== id)
-  if (remaining.length === 0 || remaining.some((item) => item.isDefault)) {
-    return remaining
+  return restaurants.filter((item) => item.id !== id)
+}
+
+export function nextDefaultRestaurantId(
+  restaurants: Restaurant[],
+  currentId: string | null,
+): string | null {
+  if (currentId && restaurants.some((item) => item.id === currentId)) {
+    return currentId
   }
-  return remaining.map((item, index) => ({ ...item, isDefault: index === 0 }))
+  return restaurants[0]?.id ?? null
 }
 
 export function paySummary(restaurant: Restaurant): string {

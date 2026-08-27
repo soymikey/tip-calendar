@@ -1,5 +1,5 @@
 import { createRestaurant } from "../../domain/restaurant"
-import { paySummary, removeRestaurant, upsertRestaurant } from "./restaurantList"
+import { nextDefaultRestaurantId, paySummary, removeRestaurant, upsertRestaurant } from "./restaurantList"
 
 const bluebird = createRestaurant({
   name: "Bluebird",
@@ -8,26 +8,35 @@ const bluebird = createRestaurant({
 })
 const harbor = createRestaurant({
   name: "Harbor",
-  isDefault: false,
   now: "2026-08-21T21:00:00.000Z",
   id: "rst_2",
 })
 
 describe("upsertRestaurant", () => {
-  it("adds a restaurant and keeps a single default", () => {
-    const next = upsertRestaurant([bluebird], { ...harbor, isDefault: true })
+  it("adds a restaurant without touching other rows", () => {
+    const next = upsertRestaurant([bluebird], harbor)
     expect(next).toHaveLength(2)
-    expect(next.find((item) => item.id === "rst_2")?.isDefault).toBe(true)
-    expect(next.find((item) => item.id === "rst_1")?.isDefault).toBe(false)
+    expect(next.map((item) => item.id)).toEqual(["rst_1", "rst_2"])
   })
 })
 
 describe("removeRestaurant", () => {
-  it("promotes another restaurant when the default is deleted", () => {
-    const next = removeRestaurant([bluebird, harbor], "rst_1")
-    expect(next).toHaveLength(1)
-    expect(next[0]?.id).toBe("rst_2")
-    expect(next[0]?.isDefault).toBe(true)
+  it("deletes the row and leaves shifts to the caller", () => {
+    expect(removeRestaurant([bluebird, harbor], "rst_1")).toEqual([harbor])
+  })
+})
+
+describe("nextDefaultRestaurantId", () => {
+  it("keeps the current default when it still exists", () => {
+    expect(nextDefaultRestaurantId([bluebird, harbor], "rst_2")).toBe("rst_2")
+  })
+
+  it("falls back to the first remaining restaurant", () => {
+    expect(nextDefaultRestaurantId([harbor], "rst_1")).toBe("rst_2")
+  })
+
+  it("is null when no restaurants remain", () => {
+    expect(nextDefaultRestaurantId([], "rst_1")).toBeNull()
   })
 })
 

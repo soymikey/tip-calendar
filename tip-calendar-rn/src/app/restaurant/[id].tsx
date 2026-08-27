@@ -19,7 +19,7 @@ import { createRestaurant } from "@/domain/restaurant"
 import { StepBasePay } from "@/features/onboarding/StepBasePay"
 import { StepTipOut } from "@/features/onboarding/StepTipOut"
 import type { OnboardingDraft } from "@/features/onboarding/onboardingDraft"
-import { removeRestaurant, upsertRestaurant } from "@/features/restaurant/restaurantList"
+import { nextDefaultRestaurantId, removeRestaurant, upsertRestaurant } from "@/features/restaurant/restaurantList"
 import { useAppState } from "@/state/AppStateContext"
 import { colors } from "@/theme/colors"
 
@@ -41,7 +41,7 @@ export default function RestaurantEditorScreen() {
   const existing = isNew ? undefined : state.restaurants.find((item) => item.id === id)
   const [draft, setDraft] = useState(() => draftFromRestaurant(existing?.name ?? "", existing))
   const [isDefault, setIsDefault] = useState(
-    () => existing?.isDefault ?? state.restaurants.length === 0,
+    () => existing?.id === state.preferences.defaultRestaurantId || state.restaurants.length === 0,
   )
   const [saving, setSaving] = useState(false)
   const canSave = draft.name.trim().length > 0
@@ -57,7 +57,6 @@ export default function RestaurantEditorScreen() {
         ? {
             ...existing,
             name: draft.name.trim(),
-            isDefault,
             payType: draft.payType,
             payAmountCents: draft.payAmountCents,
             defaultTipOutRule: draft.tipOutRule,
@@ -65,16 +64,27 @@ export default function RestaurantEditorScreen() {
           }
         : createRestaurant({
             name: draft.name.trim(),
-            isDefault,
             payType: draft.payType,
             payAmountCents: draft.payAmountCents,
             defaultTipOutRule: draft.tipOutRule,
             now,
           })
-      await updateState((current) => ({
-        ...current,
-        restaurants: upsertRestaurant(current.restaurants, restaurant),
-      }))
+      await updateState((current) => {
+        const restaurants = upsertRestaurant(current.restaurants, restaurant)
+        const defaultRestaurantId = isDefault
+          ? restaurant.id
+          : nextDefaultRestaurantId(
+              restaurants,
+              current.preferences.defaultRestaurantId === restaurant.id
+                ? null
+                : current.preferences.defaultRestaurantId,
+            )
+        return {
+          ...current,
+          restaurants,
+          preferences: { ...current.preferences, defaultRestaurantId },
+        }
+      })
       router.back()
     } finally {
       setSaving(false)
@@ -108,10 +118,20 @@ export default function RestaurantEditorScreen() {
     if (!existing) {
       return
     }
-    await updateState((current) => ({
-      ...current,
-      restaurants: removeRestaurant(current.restaurants, existing.id),
-    }))
+    await updateState((current) => {
+      const restaurants = removeRestaurant(current.restaurants, existing.id)
+      return {
+        ...current,
+        restaurants,
+        preferences: {
+          ...current.preferences,
+          defaultRestaurantId: nextDefaultRestaurantId(
+            restaurants,
+            current.preferences.defaultRestaurantId,
+          ),
+        },
+      }
+    })
     router.back()
   }
 

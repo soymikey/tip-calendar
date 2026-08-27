@@ -54,6 +54,7 @@ export function OnboardingFlow() {
       await updateState((current) => ({
         ...current,
         restaurants: [restaurant],
+        preferences: { ...current.preferences, defaultRestaurantId: restaurant.id },
       }))
     } finally {
       setSaving(false)

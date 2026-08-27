@@ -13,6 +13,7 @@ describe("localStore", () => {
         weekStartsOn: 0,
         currencySymbol: "$",
         timeFormat: "12h",
+        defaultRestaurantId: null,
       },
     })
 
@@ -25,6 +26,7 @@ describe("localStore", () => {
         weekStartsOn: 0,
         currencySymbol: "$",
         timeFormat: "12h",
+        defaultRestaurantId: null,
       },
     })
 

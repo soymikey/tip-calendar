@@ -20,6 +20,7 @@ export const defaultPreferences: Preferences = {
   weekStartsOn: 0,
   currencySymbol: "$",
   timeFormat: "12h",
+  defaultRestaurantId: null,
 }
 
 export const emptyState: AppState = {

@@ -69,7 +69,6 @@ function restaurantForShift(shift: Shift, restaurants: Restaurant[]): Restaurant
     ({
       id: shift.restaurantId,
       name: "Unknown restaurant",
-      isDefault: false,
       payType: "none",
       payAmountCents: 0,
       creditCardTipPayout: "same_day",

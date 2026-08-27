@@ -73,7 +73,6 @@ export function canContinueStep(draft: OnboardingDraft): boolean {
 export function completeOnboarding(draft: OnboardingDraft, now: string): Restaurant {
   return createRestaurant({
     name: draft.name.trim() || "My Restaurant",
-    isDefault: true,
     payType: draft.payType,
     payAmountCents: draft.payAmountCents,
     defaultTipOutRule: draft.tipOutRule,

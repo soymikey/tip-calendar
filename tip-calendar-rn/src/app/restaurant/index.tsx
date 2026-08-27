@@ -10,11 +10,14 @@ import { colors } from "@/theme/colors"
 
 export default function RestaurantSettingsScreen() {
   const { state } = useAppState()
+  const defaultRestaurantId = state.preferences.defaultRestaurantId
   const restaurants = [...state.restaurants].sort((left, right) => {
-    if (left.isDefault === right.isDefault) {
+    const leftDefault = left.id === defaultRestaurantId
+    const rightDefault = right.id === defaultRestaurantId
+    if (leftDefault === rightDefault) {
       return left.name.localeCompare(right.name)
     }
-    return left.isDefault ? -1 : 1
+    return leftDefault ? -1 : 1
   })
 
   return (
@@ -26,7 +29,7 @@ export default function RestaurantSettingsScreen() {
             <SettingsRow
               key={restaurant.id}
               title={restaurant.name}
-              subtitle={`${paySummary(restaurant)}${restaurant.isDefault ? " · Default" : ""}`}
+              subtitle={`${paySummary(restaurant)}${restaurant.id === defaultRestaurantId ? " · Default" : ""}`}
               onPress={() =>
                 router.push({ pathname: "/restaurant/[id]", params: { id: restaurant.id } })
               }
