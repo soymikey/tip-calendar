@@ -145,6 +145,19 @@ export function fromShift(shift: Shift, restaurant?: Restaurant): ShiftDraft {
   }
 }
 
+export function restaurantFromShift(shift: Shift): Restaurant {
+  return {
+    id: shift.restaurantId,
+    name: shift.restaurantName,
+    payType: shift.paySnapshot.payType,
+    payAmountCents: shift.paySnapshot.payAmountCents,
+    creditCardTipPayout: "same_day",
+    defaultTipOutRule: { type: "none" },
+    createdAt: shift.createdAt,
+    updatedAt: shift.updatedAt,
+  }
+}
+
 export function toUpdatedShift(
   draft: ShiftDraft,
   restaurant: Restaurant | undefined,

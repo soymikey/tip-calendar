@@ -2,7 +2,7 @@ import { Redirect, router, useLocalSearchParams } from "expo-router"
 import { useState } from "react"
 
 import { RecordShiftForm } from "@/features/shift/RecordShiftForm"
-import { fromShift, replaceShift, toUpdatedShift } from "@/features/shift/shiftDraft"
+import { fromShift, replaceShift, restaurantFromShift, toUpdatedShift } from "@/features/shift/shiftDraft"
 import { useAppState } from "@/state/AppStateContext"
 
 export default function EditShiftScreen() {
@@ -11,16 +11,17 @@ export default function EditShiftScreen() {
   const rawId = useLocalSearchParams<{ id?: string | string[] }>().id
   const shiftId = decodeURIComponent(Array.isArray(rawId) ? (rawId[0] ?? "") : (rawId ?? ""))
   const shift = state.shifts.find((item) => item.id === shiftId)
-  const defaultRestaurant = shift
-    ? state.restaurants.find((item) => item.id === shift.restaurantId)
+  const [restaurantId, setRestaurantId] = useState(shift?.restaurantId)
+  const liveRestaurant = shift
+    ? (state.restaurants.find((item) => item.id === restaurantId) ??
+      state.restaurants.find((item) => item.id === shift.restaurantId))
     : undefined
-  const [restaurantId, setRestaurantId] = useState(defaultRestaurant?.id)
-  const restaurant =
-    state.restaurants.find((item) => item.id === restaurantId) ?? defaultRestaurant
 
-  if (!shift || !restaurant) {
+  if (!shift) {
     return <Redirect href="/(tabs)" />
   }
+
+  const restaurant = liveRestaurant ?? restaurantFromShift(shift)
 
   return (
     <RecordShiftForm
@@ -40,7 +41,7 @@ export default function EditShiftScreen() {
         }
         setSaving(true)
         try {
-          const next = toUpdatedShift(draft, restaurant, shift, new Date().toISOString())
+          const next = toUpdatedShift(draft, liveRestaurant, shift, new Date().toISOString())
           await updateState((current) => ({
             ...current,
             shifts: replaceShift(current.shifts, next),

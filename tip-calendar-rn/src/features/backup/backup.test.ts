@@ -37,6 +37,12 @@ describe("exportCsv", () => {
     expect(csv).toContain("207.00")
     expect(csv).toContain('"Late ""rush"""')
   })
+
+  it("uses the frozen restaurant name when the restaurant row is gone", () => {
+    const csv = exportCsv({ ...state, restaurants: [] })
+    expect(csv).toContain('"Bluebird, NYC"')
+    expect(csv).toContain("207.00")
+  })
 })
 
 describe("parseBackupJson", () => {

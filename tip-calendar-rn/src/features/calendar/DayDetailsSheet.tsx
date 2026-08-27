@@ -14,7 +14,7 @@ import { parseLocalDate } from "@/domain/calendar"
 import { formatUsd } from "@/domain/money"
 import type { Restaurant } from "@/domain/restaurant"
 import type { Shift } from "@/domain/shift"
-import { incomeForShift } from "@/features/shift/shiftIncome"
+import { displayRestaurantName, incomeForShift } from "@/features/shift/shiftIncome"
 import { colors } from "@/theme/colors"
 
 type DayDetailsSheetProps = {
@@ -63,30 +63,9 @@ function formatClock(hhmm: string, timeFormat: "12h" | "24h"): string {
   })
 }
 
-function restaurantForShift(shift: Shift, restaurants: Restaurant[]): Restaurant {
-  const found = restaurants.find((item) => item.id === shift.restaurantId)
-  const base =
-    found ??
-    ({
-      id: shift.restaurantId,
-      name: "Unknown restaurant",
-      payType: "none",
-      payAmountCents: 0,
-      creditCardTipPayout: "same_day",
-      defaultTipOutRule: { type: "none" },
-      createdAt: "",
-      updatedAt: "",
-    } as Restaurant)
-  return {
-    ...base,
-    payType: shift.paySnapshot.payType,
-    payAmountCents: shift.paySnapshot.payAmountCents,
-  }
-}
-
-function wageLabel(shift: Shift, restaurant: Restaurant): string {
-  if (restaurant.payType === "hourly" && restaurant.payAmountCents > 0) {
-    return `Hourly wages (${formatHours(shift.hours)} hrs × ${formatUsd(restaurant.payAmountCents)}/hr)`
+function wageLabel(shift: Shift): string {
+  if (shift.paySnapshot.payType === "hourly" && shift.paySnapshot.payAmountCents > 0) {
+    return `Hourly wages (${formatHours(shift.hours)} hrs × ${formatUsd(shift.paySnapshot.payAmountCents)}/hr)`
   }
   return "Wages"
 }
@@ -124,10 +103,11 @@ export function DayDetailsSheet({
     [onClose, translateY],
   )
 
-  const cards = shifts.map((shift) => {
-    const restaurant = restaurantForShift(shift, restaurants)
-    return { shift, restaurant, income: incomeForShift(shift) }
-  })
+  const cards = shifts.map((shift) => ({
+    shift,
+    restaurantName: displayRestaurantName(shift, restaurants),
+    income: incomeForShift(shift),
+  }))
   const dailyTotal = cards.reduce((sum, card) => sum + card.income.netIncomeCents, 0)
 
   return (
@@ -181,7 +161,7 @@ export function DayDetailsSheet({
           className="px-5"
           contentContainerStyle={{ gap: 12, paddingBottom: 20 }}
           keyboardShouldPersistTaps="handled">
-          {cards.map(({ shift, restaurant, income }) => (
+          {cards.map(({ shift, restaurantName, income }) => (
             <View
               key={shift.id}
               className="gap-3 rounded-xl p-4"
@@ -191,7 +171,7 @@ export function DayDetailsSheet({
                   <Text className="text-[17px] font-semibold text-[#1C1C1E]">
                     {shiftCardTitle(shift)}
                   </Text>
-                  <Text className="text-[14px] text-[#8E8E93]">{restaurant.name}</Text>
+                  <Text className="text-[14px] text-[#8E8E93]">{restaurantName}</Text>
                   <Text className="text-[14px] text-[#8E8E93]">{formatHours(shift.hours)} hrs</Text>
                   {shift.clockIn && shift.clockOut ? (
                     <Text className="text-[14px] text-[#8E8E93]">
@@ -211,7 +191,7 @@ export function DayDetailsSheet({
               <DetailRow label="Cash tips" value={formatUsd(shift.cashTipsCents)} />
               <DetailRow label="Card tips" value={formatUsd(shift.cardTipsCents)} />
               <DetailRow
-                label={wageLabel(shift, restaurant)}
+                label={wageLabel(shift)}
                 value={formatUsd(income.wageIncomeCents)}
               />
               <DetailRow
