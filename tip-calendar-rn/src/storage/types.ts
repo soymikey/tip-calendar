@@ -8,7 +8,7 @@ export type KeyValueStore = {
 }
 
 export type AppState = {
-  version: 1
+  schemaVersion: 2
   restaurants: Restaurant[]
   shifts: Shift[]
   preferences: Preferences
@@ -24,7 +24,7 @@ export const defaultPreferences: Preferences = {
 }
 
 export const emptyState: AppState = {
-  version: 1,
+  schemaVersion: 2,
   restaurants: [],
   shifts: [],
   preferences: defaultPreferences,

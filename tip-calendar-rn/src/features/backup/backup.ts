@@ -1,6 +1,7 @@
 import type { Restaurant } from "../../domain/restaurant"
 import type { Shift } from "../../domain/shift"
-import { emptyState, type AppState } from "../../storage/types"
+import { parsePersistedState } from "../../storage/migrate"
+import { type AppState } from "../../storage/types"
 import { displayRestaurantName, incomeForShift } from "../shift/shiftIncome"
 
 function csvCell(value: string | number): string {
@@ -58,15 +59,13 @@ export function exportJson(state: AppState): string {
 }
 
 export function parseBackupJson(raw: string): AppState {
-  const parsed = JSON.parse(raw) as AppState
-  if (parsed.version !== 1 || !Array.isArray(parsed.restaurants) || !Array.isArray(parsed.shifts)) {
+  try {
+    return parsePersistedState(JSON.parse(raw), "import")
+  } catch (error) {
+    if (error instanceof Error && error.message === "This file is not a Tips Calendar backup.") {
+      throw error
+    }
     throw new Error("This file is not a Tips Calendar backup.")
-  }
-  return {
-    version: 1,
-    restaurants: parsed.restaurants,
-    shifts: parsed.shifts,
-    preferences: { ...emptyState.preferences, ...parsed.preferences },
   }
 }
 

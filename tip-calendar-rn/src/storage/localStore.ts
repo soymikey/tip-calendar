@@ -1,4 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage"
+import { parsePersistedState } from "./migrate"
 import { emptyState, STORAGE_KEY, type AppState, type KeyValueStore } from "./types"
 
 export function createLocalStore(kv: KeyValueStore = AsyncStorage) {
@@ -9,16 +10,11 @@ export function createLocalStore(kv: KeyValueStore = AsyncStorage) {
         return emptyState
       }
       try {
-        const parsed = JSON.parse(raw) as AppState
-        if (parsed.version !== 1 || !Array.isArray(parsed.restaurants) || !Array.isArray(parsed.shifts)) {
-          return emptyState
+        const next = parsePersistedState(JSON.parse(raw), "load")
+        if (next.schemaVersion === 2) {
+          await kv.setItem(STORAGE_KEY, JSON.stringify(next))
         }
-        return {
-          version: 1,
-          restaurants: parsed.restaurants,
-          shifts: parsed.shifts,
-          preferences: { ...emptyState.preferences, ...parsed.preferences },
-        }
+        return next
       } catch {
         return emptyState
       }
