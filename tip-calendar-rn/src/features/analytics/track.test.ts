@@ -1,5 +1,6 @@
 import {
   AnalyticsEvent,
+  enableNativeAnalytics,
   onboardingCompletedParams,
   resetAnalyticsReporter,
   setAnalyticsReporter,
@@ -48,5 +49,48 @@ describe("AnalyticsEvent names", () => {
     expect(AnalyticsEvent.backupExported).toBe("backup_exported")
     expect(AnalyticsEvent.backupImported).toBe("backup_imported")
     expect(AnalyticsEvent.dataDeleted).toBe("data_deleted")
+  })
+})
+
+describe("enableNativeAnalytics", () => {
+  const crashlytics = require("@react-native-firebase/crashlytics") as {
+    default: () => unknown
+  }
+  const analytics = require("@react-native-firebase/analytics") as {
+    default: () => unknown
+  }
+  const originalCrashlytics = crashlytics.default
+  const originalAnalytics = analytics.default
+
+  afterEach(() => {
+    crashlytics.default = originalCrashlytics
+    analytics.default = originalAnalytics
+    resetAnalyticsReporter()
+  })
+
+  it("does not swap the reporter when crashlytics cannot load", async () => {
+    crashlytics.default = () => {
+      throw new Error("native module missing")
+    }
+    const reporter = jest.fn().mockResolvedValue(undefined)
+    setAnalyticsReporter(reporter)
+
+    await enableNativeAnalytics()
+    await track(AnalyticsEvent.shiftSaved)
+
+    expect(reporter).toHaveBeenCalledWith("shift_saved", undefined)
+  })
+
+  it("does not swap the reporter when analytics cannot load", async () => {
+    analytics.default = () => {
+      throw new Error("native module missing")
+    }
+    const reporter = jest.fn().mockResolvedValue(undefined)
+    setAnalyticsReporter(reporter)
+
+    await enableNativeAnalytics()
+    await track(AnalyticsEvent.shiftSaved)
+
+    expect(reporter).toHaveBeenCalledWith("shift_saved", undefined)
   })
 })
