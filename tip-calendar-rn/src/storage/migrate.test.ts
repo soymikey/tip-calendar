@@ -92,6 +92,59 @@ describe("migrateToV2", () => {
     )
     expect(next.shifts[0]?.tipOutSnapshot).toEqual({ type: "fixed", amountCents: 250 })
   })
+
+  it("lifts already-flattened version 1 documents without recomputing income", () => {
+    const rst1 = { ...restaurant, id: "rst_1", name: "Bluebird", isDefault: false }
+    const rst2 = { ...restaurant, id: "rst_2", name: "Harbor", isDefault: false }
+    const next = migrateToV2(
+      {
+        version: 1 as const,
+        restaurants: [rst1, rst2],
+        shifts: [
+          {
+            ...v1Shift,
+            restaurantId: "rst_2",
+            restaurantName: "Harbor",
+            tipOutSnapshot: {
+              type: "tips_percent",
+              baseAmountCents: 20700,
+              percent: 3,
+              amountCents: 621,
+            },
+            incomeSnapshot: {
+              totalTipsCents: 20700,
+              wageIncomeCents: 9750,
+              otherIncomeCents: 0,
+              grossIncomeCents: 30450,
+              tipOutCents: 621,
+              netIncomeCents: 29829,
+              effectiveHours: 6.5,
+              effectiveHourlyCents: 4589,
+            },
+          },
+        ],
+        preferences: {
+          weekStartsOn: 0 as const,
+          currencySymbol: "$",
+          timeFormat: "12h" as const,
+          defaultRestaurantId: "rst_2",
+        },
+      },
+      "load",
+    )
+    expect(next.schemaVersion).toBe(2)
+    expect(next.shifts[0]?.id).toBe("sft_1")
+    expect(next.shifts[0]?.incomeSnapshot.netIncomeCents).toBe(29829)
+    expect(next.shifts[0]?.tipOutSnapshot).toEqual({
+      type: "tips_percent",
+      baseAmountCents: 20700,
+      percent: 3,
+      amountCents: 621,
+    })
+    expect(next.preferences.defaultRestaurantId).toBe("rst_2")
+    expect("isDefault" in next.restaurants[0]!).toBe(false)
+    expect("isDefault" in next.restaurants[1]!).toBe(false)
+  })
 })
 
 describe("parsePersistedState", () => {

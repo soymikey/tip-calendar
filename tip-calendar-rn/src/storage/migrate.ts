@@ -90,16 +90,33 @@ function stripIsDefault(restaurant: Record<string, unknown>): Restaurant {
 
 function migrateRestaurants(raw: unknown): {
   restaurants: Restaurant[]
-  defaultRestaurantId: string | null
+  rawRestaurants: Record<string, unknown>[]
 } {
-  const list = Array.isArray(raw) ? raw.filter(isRecord) : []
-  const flagged = list.find((item) => item.isDefault === true)
-  const restaurants = list.map(stripIsDefault)
-  const defaultRestaurantId =
-    (isRecord(flagged) && typeof flagged.id === "string" ? flagged.id : null) ??
-    restaurants[0]?.id ??
-    null
-  return { restaurants, defaultRestaurantId }
+  const rawRestaurants = Array.isArray(raw) ? raw.filter(isRecord) : []
+  return { restaurants: rawRestaurants.map(stripIsDefault), rawRestaurants }
+}
+
+function resolveDefaultRestaurantId(
+  restaurants: Restaurant[],
+  rawRestaurants: Record<string, unknown>[],
+  preferences: unknown,
+): string | null {
+  if (isRecord(preferences) && typeof preferences.defaultRestaurantId === "string") {
+    const existing = preferences.defaultRestaurantId
+    if (restaurants.some((item) => item.id === existing)) {
+      return existing
+    }
+  }
+  const flagged = rawRestaurants.find((item) => item.isDefault === true)
+  return (typeof flagged?.id === "string" ? flagged.id : null) ?? restaurants[0]?.id ?? null
+}
+
+function isFlattenedV2Shift(shift: Record<string, unknown>): boolean {
+  if (!isRecord(shift.incomeSnapshot)) {
+    return false
+  }
+  const tipOut = shift.tipOutSnapshot
+  return isRecord(tipOut) && typeof tipOut.type === "string" && !("rule" in tipOut)
 }
 
 function hasIdAndLocalDate(
@@ -191,7 +208,12 @@ export function migrateToV2(v1: unknown, mode: PersistMode): AppState {
     throw new Error(BACKUP_ERROR)
   }
 
-  const { restaurants, defaultRestaurantId } = migrateRestaurants(v1.restaurants)
+  const { restaurants, rawRestaurants } = migrateRestaurants(v1.restaurants)
+  const defaultRestaurantId = resolveDefaultRestaurantId(
+    restaurants,
+    rawRestaurants,
+    v1.preferences,
+  )
   const rawShifts = Array.isArray(v1.shifts) ? v1.shifts : []
   const shifts: Shift[] = []
   for (const item of rawShifts) {
@@ -201,7 +223,7 @@ export function migrateToV2(v1: unknown, mode: PersistMode): AppState {
       }
       continue
     }
-    shifts.push(migrateShift(item, restaurants))
+    shifts.push(isFlattenedV2Shift(item) ? (item as Shift) : migrateShift(item, restaurants))
   }
 
   const preferences: Preferences = {
@@ -216,6 +238,16 @@ export function migrateToV2(v1: unknown, mode: PersistMode): AppState {
     shifts,
     preferences,
   }
+}
+
+export function isRecognizedPersistedDocument(value: unknown): boolean {
+  if (!isRecord(value)) {
+    return false
+  }
+  if (value.schemaVersion === 2 && Array.isArray(value.restaurants) && Array.isArray(value.shifts)) {
+    return true
+  }
+  return value.version === 1 && !("schemaVersion" in value)
 }
 
 export function parsePersistedState(value: unknown, mode: PersistMode): AppState {

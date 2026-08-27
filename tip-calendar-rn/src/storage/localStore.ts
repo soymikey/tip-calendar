@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage"
-import { parsePersistedState } from "./migrate"
+import { isRecognizedPersistedDocument, parsePersistedState } from "./migrate"
 import { emptyState, STORAGE_KEY, type AppState, type KeyValueStore } from "./types"
 
 export function createLocalStore(kv: KeyValueStore = AsyncStorage) {
@@ -10,8 +10,9 @@ export function createLocalStore(kv: KeyValueStore = AsyncStorage) {
         return emptyState
       }
       try {
-        const next = parsePersistedState(JSON.parse(raw), "load")
-        if (next.schemaVersion === 2) {
+        const parsed = JSON.parse(raw) as unknown
+        const next = parsePersistedState(parsed, "load")
+        if (isRecognizedPersistedDocument(parsed)) {
           await kv.setItem(STORAGE_KEY, JSON.stringify(next))
         }
         return next

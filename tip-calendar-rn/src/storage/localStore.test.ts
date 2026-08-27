@@ -1,6 +1,7 @@
 import { createRestaurant } from "../domain/restaurant"
 import { createLocalStore } from "./localStore"
 import { createMemoryStore } from "./memoryStore"
+import { emptyState } from "./types"
 
 const v1Restaurant = {
   id: "rst_1",
@@ -109,5 +110,14 @@ describe("localStore", () => {
     const loaded = await store.load()
     expect(loaded.restaurants).toEqual([])
     expect(loaded.shifts).toEqual([])
+  })
+
+  it("does not persist emptyState over unrecognized blobs", async () => {
+    const memory = createMemoryStore()
+    const raw = JSON.stringify({ hello: true })
+    await memory.setItem("tips-calendar/v1", raw)
+    const store = createLocalStore(memory)
+    await expect(store.load()).resolves.toEqual(emptyState)
+    expect(await memory.getItem("tips-calendar/v1")).toBe(raw)
   })
 })
