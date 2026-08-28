@@ -1,5 +1,5 @@
 import { useNavigation } from "expo-router"
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import {
   ActionSheetIOS,
   Pressable,
@@ -11,14 +11,17 @@ import { SafeAreaView } from "react-native-safe-area-context"
 import { SymbolView } from "expo-symbols"
 
 import { SegmentedControl } from "@/components/SegmentedControl"
+import { HintToast } from "@/components/HintToast"
 import {
   addDays,
+  isFutureLocalDate,
   parseLocalDate,
   startOfWeek,
   toLocalDate,
 } from "@/domain/calendar"
 import { formatUsd } from "@/domain/money"
 import { requestOpenDate } from "@/features/calendar/openDateRequest"
+import { FUTURE_SHIFT_HINT, warnFutureDate } from "@/features/calendar/futureDate"
 import {
   monthRangeLabel,
   summarizeStats,
@@ -29,6 +32,8 @@ import {
 import { useAppState } from "@/state/AppStateContext"
 import { colors } from "@/theme/colors"
 
+const HINT_MS = 2500
+
 const MODE_OPTIONS: { value: StatsMode; label: string }[] = [
   { value: "week", label: "Week" },
   { value: "month", label: "Month" },
@@ -37,6 +42,13 @@ const MODE_OPTIONS: { value: StatsMode; label: string }[] = [
 function formatHours(hours: number): string {
   const rounded = Math.round(hours * 10) / 10
   return Number.isInteger(rounded) ? String(rounded) : String(rounded)
+}
+
+function formatBestDay(summary: ReturnType<typeof summarizeStats>): string {
+  if (!summary.bestDay) {
+    return "—"
+  }
+  return `${monthTick(summary.bestDay.localDate)} · ${formatUsd(summary.bestDay.netCents)}`
 }
 
 function shiftMonth(year: number, month: number, delta: number) {
@@ -54,6 +66,16 @@ export function StatsScreen() {
   const [year, setYear] = useState(() => new Date().getFullYear())
   const [month, setMonth] = useState(() => new Date().getMonth() + 1)
   const [restaurantId, setRestaurantId] = useState<string | undefined>(undefined)
+  const [futureHint, setFutureHint] = useState(false)
+  const hintTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    return () => {
+      if (hintTimer.current) {
+        clearTimeout(hintTimer.current)
+      }
+    }
+  }, [])
 
   const alignedWeekStart = startOfWeek(weekStart, weekStartsOn)
   const summary = useMemo(
@@ -88,10 +110,24 @@ export function StatsScreen() {
     setMonth(next.month)
   }
 
-  function goToCalendar(localDate?: string) {
-    if (localDate) {
-      requestOpenDate(localDate)
+  function showFutureHint() {
+    void warnFutureDate()
+    setFutureHint(true)
+    if (hintTimer.current) {
+      clearTimeout(hintTimer.current)
     }
+    hintTimer.current = setTimeout(() => {
+      setFutureHint(false)
+      hintTimer.current = null
+    }, HINT_MS)
+  }
+
+  function goToCalendar(localDate: string) {
+    if (isFutureLocalDate(localDate, today)) {
+      showFutureHint()
+      return
+    }
+    requestOpenDate(localDate)
     navigation.navigate("index" as never)
   }
 
@@ -119,15 +155,22 @@ export function StatsScreen() {
     { label: "Net Income", value: formatUsd(summary.netIncomeCents), tone: "income" as const },
     { label: "Total Tips", value: formatUsd(summary.totalTipsCents) },
     {
+      label: "Tip-out",
+      value: summary.tipOutCents > 0 ? `-${formatUsd(summary.tipOutCents)}` : formatUsd(0),
+      tone: "deduct" as const,
+    },
+    {
       label: "Average Hourly",
       value: summary.averageHourlyCents === null ? "—" : `${formatUsd(summary.averageHourlyCents)}/hr`,
     },
     { label: "Shifts Worked", value: String(summary.shiftsWorked) },
     { label: "Hours Worked", value: `${formatHours(summary.hoursWorked)} hrs` },
+    { label: "Best Day", value: formatBestDay(summary), tone: "income" as const },
   ]
 
   return (
     <SafeAreaView className="flex-1 bg-white" edges={["top"]}>
+      <View className="relative flex-1">
       <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 32 }}>
         <View className="px-5 pb-3 pt-4">
           <Text className="text-[32px] font-bold text-[#1C1C1E]">Stats</Text>
@@ -199,51 +242,56 @@ export function StatsScreen() {
                 <Text className="text-[11px] font-medium text-[#8E8E93]">{card.label}</Text>
                 <Text
                   className="text-[20px] font-bold"
-                  style={{ color: card.tone === "income" ? colors.income : "#1C1C1E" }}>
+                  style={{
+                    color:
+                      card.tone === "income"
+                        ? colors.income
+                        : card.tone === "deduct"
+                          ? colors.danger
+                          : "#1C1C1E",
+                  }}>
                   {card.value}
                 </Text>
               </View>
             ))}
           </View>
 
-          <DailyEarnings days={summary.days} mode={mode} today={today} onSelect={goToCalendar} />
-
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="View in Calendar"
-            className="min-h-[44px] items-center justify-center"
-            onPress={() => goToCalendar()}>
-            <Text className="text-[17px] font-semibold" style={{ color: colors.action }}>
-              View in Calendar
-            </Text>
-          </Pressable>
+          <DailyEarnings days={summary.days} mode={mode} onSelect={goToCalendar} />
         </View>
       </ScrollView>
+        {futureHint ? <HintToast message={FUTURE_SHIFT_HINT} /> : null}
+      </View>
     </SafeAreaView>
   )
+}
+
+function monthTick(localDate?: string): string {
+  if (!localDate) {
+    return ""
+  }
+  return parseLocalDate(localDate).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+  })
 }
 
 function DailyEarnings({
   days,
   mode,
-  today,
   onSelect,
 }: {
   days: DailyPoint[]
   mode: StatsMode
-  today: string
   onSelect: (localDate: string) => void
 }) {
   const max = Math.max(1, ...days.map((day) => day.netCents))
-  const todayIndex = days.findIndex((day) => day.localDate === today)
 
   return (
     <View className="rounded-xl px-3 py-4" style={{ backgroundColor: colors.parchment }}>
       <Text className="mb-3 text-[15px] font-semibold text-[#1C1C1E]">Daily Earnings</Text>
       <View className="h-28 flex-row items-end gap-[3px]">
-        {days.map((day, index) => {
+        {days.map((day) => {
           const height = day.netCents > 0 ? Math.max(6, Math.round((day.netCents / max) * 104)) : 4
-          const highlight = todayIndex >= 0 ? index === todayIndex : index === days.length - 1
           return (
             <Pressable
               key={day.localDate}
@@ -255,25 +303,36 @@ function DailyEarnings({
                 className="w-full rounded-sm"
                 style={{
                   height,
-                  backgroundColor: highlight ? colors.action : "#C7C7CC",
+                  backgroundColor: day.netCents > 0 ? colors.action : "#C7C7CC",
                 }}
               />
             </Pressable>
           )
         })}
       </View>
-      <View className="mt-2 flex-row gap-[3px]">
-        {days.map((day, index) => {
-          const show = mode === "week" || index === 0 || (index + 1) % 7 === 0 || index === days.length - 1
-          return (
-            <View key={`${day.localDate}-label`} className="flex-1 items-center">
-              <Text className="text-[10px] text-[#8E8E93]">
-                {show ? (mode === "week" ? day.label.slice(0, 3) : day.label) : ""}
-              </Text>
-            </View>
-          )
-        })}
-      </View>
+      {mode === "week" ? (
+        <View className="mt-2 flex-row gap-[3px]">
+          {days.map((day) => {
+            const [weekday, dayNumber] = day.label.split(" ")
+            return (
+              <View key={`${day.localDate}-label`} className="flex-1 items-center">
+                <Text className="text-[10px] text-[#8E8E93]">{weekday}</Text>
+                <Text className="text-[10px] text-[#8E8E93]">{dayNumber}</Text>
+              </View>
+            )
+          })}
+        </View>
+      ) : (
+        <View className="mt-2 flex-row justify-between">
+          <Text className="text-[10px] text-[#8E8E93]">{monthTick(days[0]?.localDate)}</Text>
+          <Text className="text-[10px] text-[#8E8E93]">
+            {monthTick(days[Math.floor((days.length - 1) / 2)]?.localDate)}
+          </Text>
+          <Text className="text-[10px] text-[#8E8E93]">
+            {monthTick(days[days.length - 1]?.localDate)}
+          </Text>
+        </View>
+      )}
     </View>
   )
 }

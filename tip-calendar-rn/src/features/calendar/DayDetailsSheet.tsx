@@ -1,4 +1,4 @@
-import { useMemo, useRef } from "react"
+import { useMemo, useState } from "react"
 import {
   Animated,
   PanResponder,
@@ -81,7 +81,7 @@ export function DayDetailsSheet({
   onDelete,
 }: DayDetailsSheetProps) {
   const { height } = useWindowDimensions()
-  const translateY = useRef(new Animated.Value(0)).current
+  const [translateY] = useState(() => new Animated.Value(0))
   const pan = useMemo(
     () =>
       PanResponder.create({

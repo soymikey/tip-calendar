@@ -1,18 +1,13 @@
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { Text, View } from "react-native"
 
 import { SegmentedControl } from "@/components/SegmentedControl"
 import { TextField } from "@/components/TextField"
 import { dollarsToCents } from "@/domain/money"
 import type { PayType } from "@/domain/restaurant"
+import { PAY_OPTIONS } from "@/features/restaurant/payAndTipOutOptions"
 
 import type { OnboardingDraft } from "./onboardingDraft"
-
-const PAY_OPTIONS: { value: PayType; label: string }[] = [
-  { value: "hourly", label: "Hourly" },
-  { value: "fixed", label: "Per Shift" },
-  { value: "none", label: "No Base" },
-]
 
 type StepBasePayProps = {
   draft: OnboardingDraft
@@ -40,12 +35,6 @@ function parseDollarInput(value: string): number {
 
 export function StepBasePay({ draft, onChangePay }: StepBasePayProps) {
   const [amountText, setAmountText] = useState(() => centsToInput(draft.payAmountCents))
-
-  useEffect(() => {
-    if (draft.payType === "none") {
-      setAmountText("")
-    }
-  }, [draft.payType])
 
   function changePayType(payType: PayType) {
     const payAmountCents = payType === "none" ? 0 : parseDollarInput(amountText)

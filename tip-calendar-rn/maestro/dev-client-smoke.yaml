@@ -1,0 +1,31 @@
+appId: app.tipcalendar
+---
+- launchApp
+- runFlow:
+    when:
+      visible: "Tip Calendar.*8081"
+    commands:
+      - tapOn: "Tip Calendar.*8081"
+- assertVisible: "Tip Calendar"
+- assertVisible: "Stats"
+- tapOn: "Stats"
+- assertVisible: "Net Income.*"
+- assertVisible: "Tip-out.*"
+- assertVisible: "Best Day.*"
+- tapOn: "Calendar"
+- assertVisible: "August 2026"
+- tapOn: "Today, Thursday, August 27"
+- tapOn: "Today, Thursday, August 27"
+- assertVisible: "Record Shift"
+- tapOn:
+    id: "shift-hours-input"
+- inputText: "6.5"
+- tapOn:
+    id: "shift-cash-tips-input"
+- inputText: "80"
+- tapOn:
+    id: "shift-card-tips-input"
+- inputText: "120"
+- assertVisible: "$200.00"
+- tapOn: "Save Shift"
+- assertVisible: "Tip Calendar"

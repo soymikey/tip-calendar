@@ -16,9 +16,9 @@ import { SymbolView } from "expo-symbols"
 import { PrimaryButton } from "@/components/PrimaryButton"
 import { SegmentedControl } from "@/components/SegmentedControl"
 import { TextField } from "@/components/TextField"
-import { parseLocalDate } from "@/domain/calendar"
 import { centsToDollars, dollarsToCents, formatUsd } from "@/domain/money"
 import type { PayType, Restaurant, ShiftTag, TipOutRule } from "@/domain/restaurant"
+import { PAY_OPTIONS, TIP_OUT_OPTIONS } from "@/features/restaurant/payAndTipOutOptions"
 import { colors } from "@/theme/colors"
 
 import { calculationBreakdown } from "./calculationBreakdown"
@@ -28,6 +28,7 @@ import {
   resolveShiftHours,
   type ShiftDraft,
 } from "./shiftDraft"
+import { shiftFormHeader } from "./shiftHeader"
 import { validateShiftDraft } from "./shiftValidation"
 
 type RecordShiftFormProps = {
@@ -41,14 +42,6 @@ type RecordShiftFormProps = {
   onRestaurantChange?: (restaurant: Restaurant) => void
   onCancel: () => void
   onSave: (draft: ShiftDraft) => Promise<void>
-}
-
-function formatShiftDateTitle(localDate: string, weekday: "short" | "long"): string {
-  return parseLocalDate(localDate).toLocaleDateString("en-US", {
-    weekday,
-    month: "long",
-    day: "numeric",
-  })
 }
 
 function tipOutRuleForForm(rule: ShiftDraft["tipOutRule"] | undefined, fallback: TipOutRule): TipOutRule {
@@ -177,6 +170,7 @@ export function RecordShiftForm({
   const [otherText, setOtherText] = useState(() => centsToField(initialDraft?.otherIncomeCents ?? 0))
   const [note, setNote] = useState(initialDraft?.note ?? "")
   const isEdit = mode === "edit"
+  const header = shiftFormHeader(mode, localDate)
   const canPickRestaurant = restaurants.length > 1 && Boolean(onRestaurantChange)
 
   const unpaidBreakHours = (parseHours(breakMinutesText) || 0) / 60
@@ -268,19 +262,20 @@ export function RecordShiftForm({
           </Pressable>
           <View className="flex-1 items-center">
             <Text className="text-center text-[17px] font-semibold text-[#1C1C1E]">
-              {isEdit ? "Edit Shift" : formatShiftDateTitle(localDate, "short")}
+              {header.title}
             </Text>
-            {isEdit ? (
-              <Text className="text-center text-[13px] text-[#8E8E93]">
-                {formatShiftDateTitle(localDate, "long")}
-              </Text>
-            ) : null}
+            <Text className="text-center text-[13px] text-[#8E8E93]">{header.subtitle}</Text>
           </View>
           <View className="w-[52px]" />
         </View>
 
         <ScrollView className="flex-1" contentContainerStyle={{ gap: 16, padding: 20 }}>
-          <Pressable disabled={!canPickRestaurant} onPress={pickRestaurant}>
+          <Pressable
+            accessibilityRole={canPickRestaurant ? "button" : undefined}
+            accessibilityLabel="Restaurant"
+            disabled={!canPickRestaurant}
+            testID="shift-restaurant-picker"
+            onPress={pickRestaurant}>
             <View className="gap-1.5">
               <Text className="text-[12px] font-semibold uppercase text-[#8E8E93]">Restaurant</Text>
               <View
@@ -302,6 +297,7 @@ export function RecordShiftForm({
           {useClock ? null : (
             <TextField
               label="Hours worked"
+              testID="shift-hours-input"
               keyboardType="decimal-pad"
               placeholder="0"
               value={hoursText}
@@ -315,6 +311,7 @@ export function RecordShiftForm({
             <View className="flex-1">
               <TextField
                 label="Cash Tips"
+                testID="shift-cash-tips-input"
                 prefix="$"
                 keyboardType="decimal-pad"
                 placeholder="0.00"
@@ -327,6 +324,7 @@ export function RecordShiftForm({
             <View className="flex-1">
               <TextField
                 label="Card Tips"
+                testID="shift-card-tips-input"
                 prefix="$"
                 keyboardType="decimal-pad"
                 placeholder="0.00"
@@ -338,19 +336,20 @@ export function RecordShiftForm({
             </View>
           </View>
 
-          <Expander title="Base Pay" open={basePayOpen} onToggle={() => setBasePayOpen((value) => !value)}>
+          <Expander
+            title="Base Pay"
+            testID="shift-base-pay-expander"
+            open={basePayOpen}
+            onToggle={() => setBasePayOpen((value) => !value)}>
             <SegmentedControl
-              options={[
-                { value: "hourly", label: "Hourly" },
-                { value: "fixed", label: "Per Shift" },
-                { value: "none", label: "No Base Pay" },
-              ]}
+              options={PAY_OPTIONS}
               value={payType}
               onChange={setPayType}
             />
             {payType === "none" ? null : (
               <TextField
                 label={payType === "hourly" ? "Hourly rate" : "Shift pay"}
+                testID="shift-base-pay-input"
                 prefix="$"
                 keyboardType="decimal-pad"
                 placeholder="0.00"
@@ -368,20 +367,20 @@ export function RecordShiftForm({
             </Text>
           </Expander>
 
-          <Expander title="Tip-out" open={tipOutOpen} onToggle={() => setTipOutOpen((value) => !value)}>
+          <Expander
+            title="Tip-out"
+            testID="shift-tip-out-expander"
+            open={tipOutOpen}
+            onToggle={() => setTipOutOpen((value) => !value)}>
             <SegmentedControl
-              options={[
-                { value: "none", label: "None" },
-                { value: "fixed", label: "Fixed" },
-                { value: "sales_percent", label: "% Sales" },
-                { value: "tips_percent", label: "% Tips" },
-              ]}
+              options={TIP_OUT_OPTIONS}
               value={tipOutRule.type}
               onChange={changeTipKind}
             />
             {tipOutRule.type === "fixed" ? (
               <TextField
                 label="Amount"
+                testID="shift-tip-out-amount-input"
                 prefix="$"
                 keyboardType="decimal-pad"
                 placeholder="0.00"
@@ -395,6 +394,7 @@ export function RecordShiftForm({
             {tipOutRule.type === "sales_percent" || tipOutRule.type === "tips_percent" ? (
               <TextField
                 label="Percentage"
+                testID="shift-tip-out-percent-input"
                 suffix="%"
                 keyboardType="decimal-pad"
                 placeholder="0"
@@ -413,6 +413,7 @@ export function RecordShiftForm({
             {tipOutRule.type === "sales_percent" ? (
               <TextField
                 label="Sales"
+                testID="shift-sales-input"
                 prefix="$"
                 keyboardType="decimal-pad"
                 placeholder="0.00"
@@ -426,7 +427,11 @@ export function RecordShiftForm({
             </Text>
           </Expander>
 
-          <Expander title="More Options" open={moreOpen} onToggle={() => setMoreOpen((value) => !value)}>
+          <Expander
+            title="More Options"
+            testID="shift-more-options-expander"
+            open={moreOpen}
+            onToggle={() => setMoreOpen((value) => !value)}>
             <Text className="text-[12px] font-semibold uppercase text-[#8E8E93]">Shift Tag (optional)</Text>
             <View className="flex-row gap-2.5">
               <TagPill label="Lunch" selected={tag === "lunch"} onPress={() => setTag(tag === "lunch" ? undefined : "lunch")} />
@@ -445,6 +450,8 @@ export function RecordShiftForm({
                 </Text>
               </View>
               <Switch
+                accessibilityLabel="Use clock in/out instead"
+                testID="shift-use-clock-switch"
                 value={useClock}
                 onValueChange={setUseClock}
                 trackColor={{ true: "#34C759" }}
@@ -494,6 +501,7 @@ export function RecordShiftForm({
               <View className="flex-1">
                 <TextField
                   label="Unpaid Break"
+                  testID="shift-unpaid-break-input"
                   suffix="min"
                   keyboardType="number-pad"
                   placeholder="0"
@@ -506,6 +514,7 @@ export function RecordShiftForm({
               <View className="flex-1">
                 <TextField
                   label="Other Income"
+                  testID="shift-other-income-input"
                   prefix="$"
                   keyboardType="decimal-pad"
                   placeholder="0.00"
@@ -516,6 +525,7 @@ export function RecordShiftForm({
             </View>
             <TextField
               label="Notes (optional)"
+              testID="shift-notes-input"
               placeholder="e.g. Holiday, large party..."
               value={note}
               multiline
@@ -606,18 +616,20 @@ export function RecordShiftForm({
 
 function Expander({
   title,
+  testID,
   open,
   onToggle,
   children,
 }: {
   title: string
+  testID?: string
   open: boolean
   onToggle: () => void
   children: ReactNode
 }) {
   return (
     <View className="gap-2">
-      <Pressable accessibilityRole="button" onPress={onToggle}>
+      <Pressable accessibilityRole="button" testID={testID} onPress={onToggle}>
         <Text className="text-[14px] font-semibold" style={{ color: colors.action }}>
           {open ? `− ${title}` : `+ ${title}`}
         </Text>
@@ -656,7 +668,7 @@ function TagPill({
 
 function TimeButton({ label, value, onPress }: { label: string; value: string; onPress: () => void }) {
   return (
-    <Pressable className="flex-1 gap-1.5" onPress={onPress}>
+    <Pressable accessibilityRole="button" accessibilityLabel={label} className="flex-1 gap-1.5" onPress={onPress}>
       <Text className="text-[12px] font-semibold uppercase text-[#8E8E93]">{label}</Text>
       <View className="h-11 justify-center rounded-[10px] bg-white px-3.5">
         <Text className="text-[16px] text-[#1C1C1E]">{value}</Text>

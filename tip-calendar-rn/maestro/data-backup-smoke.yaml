@@ -1,0 +1,43 @@
+appId: app.tipcalendar
+---
+- launchApp
+- runFlow:
+    when:
+      visible: "Tip Calendar.*8081"
+    commands:
+      - tapOn: "Tip Calendar.*8081"
+- assertVisible: "Tip Calendar"
+- tapOn: "Me"
+- assertVisible: "Data & backup"
+- tapOn: "Data & backup"
+- assertVisible: "Data & backup"
+- assertVisible: "Export CSV"
+- assertVisible: "Export JSON"
+- assertVisible: "Import JSON"
+- assertVisible: "Storage"
+- assertVisible: "Total Shifts"
+- assertVisible: "Data Size"
+- tapOn: "Export JSON"
+- extendedWaitUntil:
+    visible: "JSON.*bytes"
+    timeout: 10000
+- assertVisible: "tips-calendar"
+- assertVisible: "Save to Files"
+- tapOn: "dismiss popup"
+- assertVisible: "Data & backup"
+- tapOn: "Export CSV"
+- extendedWaitUntil:
+    visible: "Text Document.*bytes"
+    timeout: 10000
+- assertVisible: "tips-calendar"
+- assertVisible: "Save to Files"
+- tapOn: "dismiss popup"
+- assertVisible: "Data & backup"
+- tapOn: "Import JSON"
+- extendedWaitUntil:
+    visible: "Recents"
+    timeout: 10000
+- assertVisible: "Cancel"
+- assertVisible: "Browse"
+- tapOn: "Cancel"
+- assertVisible: "Data & backup"

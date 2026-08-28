@@ -1,4 +1,5 @@
 import { parseLocalDate } from "./calendar"
+import { newEntityId } from "./id"
 import type { Cents } from "./money"
 import { addCents } from "./money"
 import type { PayType, Restaurant, ShiftTag, TipOutRule } from "./restaurant"
@@ -110,7 +111,7 @@ export function createShift(input: {
       salesCents: input.salesCents,
     })
   return {
-    id: input.id ?? crypto.randomUUID(),
+    id: input.id ?? newEntityId(),
     localDate: input.localDate,
     restaurantId: input.restaurantId,
     restaurantName: input.restaurantName,

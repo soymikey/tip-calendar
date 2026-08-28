@@ -1,3 +1,7 @@
+import { isExpoGo } from "./expoRuntime"
+
+/* eslint-disable @typescript-eslint/no-require-imports */
+
 import {
   AnalyticsEvent,
   enableNativeAnalytics,
@@ -7,6 +11,10 @@ import {
   shiftSavedParams,
   track,
 } from "./track"
+
+jest.mock("./expoRuntime", () => ({
+  isExpoGo: jest.fn(() => false),
+}))
 
 describe("analytics params", () => {
   it("only sends booleans and kind enums", () => {
@@ -23,7 +31,14 @@ describe("analytics params", () => {
 })
 
 describe("track", () => {
+  let warnSpy: jest.SpyInstance
+
+  beforeEach(() => {
+    warnSpy = jest.spyOn(console, "warn").mockImplementation(() => undefined)
+  })
+
   afterEach(() => {
+    warnSpy.mockRestore()
     resetAnalyticsReporter()
   })
 
@@ -61,11 +76,31 @@ describe("enableNativeAnalytics", () => {
   }
   const originalCrashlytics = crashlytics.default
   const originalAnalytics = analytics.default
+  let warnSpy: jest.SpyInstance
+
+  beforeEach(() => {
+    warnSpy = jest.spyOn(console, "warn").mockImplementation(() => undefined)
+  })
 
   afterEach(() => {
+    warnSpy.mockRestore()
     crashlytics.default = originalCrashlytics
     analytics.default = originalAnalytics
+    ;(isExpoGo as jest.Mock).mockReturnValue(false)
     resetAnalyticsReporter()
+  })
+
+  it("does not load Firebase native modules in Expo Go", async () => {
+    ;(isExpoGo as jest.Mock).mockReturnValue(true)
+    const factory = jest.fn(() => {
+      throw new Error("should not load native firebase")
+    })
+    crashlytics.default = factory
+    analytics.default = factory
+
+    await enableNativeAnalytics()
+
+    expect(factory).not.toHaveBeenCalled()
   })
 
   it("does not swap the reporter when crashlytics cannot load", async () => {

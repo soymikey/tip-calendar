@@ -10,7 +10,7 @@ function TabIcon({
   name,
   color,
 }: {
-  name: "calendar" | "chart.bar" | "person.fill"
+  name: "calendar" | "chart.bar" | "person"
   color: ColorValue
 }) {
   const tint = typeof color === "string" ? color : colors.action
@@ -59,7 +59,7 @@ export default function TabLayout() {
         options={{
           title: "Me",
           tabBarAccessibilityLabel: "Me",
-          tabBarIcon: ({ color }) => <TabIcon name="person.fill" color={color} />,
+          tabBarIcon: ({ color }) => <TabIcon name="person" color={color} />,
         }}
       />
     </Tabs>

@@ -5,9 +5,10 @@ import { colors } from "@/theme/colors"
 
 type EmptyShiftOverlayProps = {
   onDismiss: () => void
+  hasAnyShifts?: boolean
 }
 
-export function EmptyShiftOverlay({ onDismiss }: EmptyShiftOverlayProps) {
+export function EmptyShiftOverlay({ onDismiss, hasAnyShifts = false }: EmptyShiftOverlayProps) {
   return (
     <View
       pointerEvents="box-none"
@@ -30,7 +31,7 @@ export function EmptyShiftOverlay({ onDismiss }: EmptyShiftOverlayProps) {
         <View className="items-center gap-1">
           <Text className="text-[17px] font-semibold text-[#1C1C1E]">No shifts recorded yet</Text>
           <Text className="text-center text-[14px] text-[#8E8E93]">
-            Tap any date to add your first shift
+            {hasAnyShifts ? "Tap any date to add a shift" : "Tap any date to add your first shift"}
           </Text>
         </View>
       </Pressable>

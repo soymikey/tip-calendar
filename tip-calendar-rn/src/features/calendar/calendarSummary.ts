@@ -49,3 +49,8 @@ export function summarizeCalendar(input: {
     hourlyCents: monthHours > 0 ? Math.round(monthCents / monthHours) : null,
   }
 }
+
+export function hasShiftsInMonth(shifts: Shift[], year: number, month: number): boolean {
+  const monthPrefix = `${year}-${String(month).padStart(2, "0")}`
+  return shifts.some((shift) => shift.localDate.startsWith(monthPrefix))
+}

@@ -21,9 +21,11 @@ export type DailyPoint = {
 export type StatsSummary = {
   netIncomeCents: Cents
   totalTipsCents: Cents
+  tipOutCents: Cents
   averageHourlyCents: Cents | null
   shiftsWorked: number
   hoursWorked: number
+  bestDay: DailyPoint | null
   days: DailyPoint[]
 }
 
@@ -71,6 +73,7 @@ export function summarizeStats(input: {
 
   let netIncomeCents = 0
   let totalTipsCents = 0
+  let tipOutCents = 0
   let hoursWorked = 0
   const byDate = new Map<LocalDate, Cents>()
 
@@ -80,6 +83,7 @@ export function summarizeStats(input: {
     const hours = shift.incomeSnapshot.effectiveHours
     netIncomeCents += net
     totalTipsCents += tips
+    tipOutCents += shift.incomeSnapshot.tipOutCents
     hoursWorked += hours
     byDate.set(shift.localDate, (byDate.get(shift.localDate) ?? 0) + net)
   }
@@ -88,9 +92,12 @@ export function summarizeStats(input: {
     input.mode === "week"
       ? Array.from({ length: 7 }, (_, index) => {
           const localDate = addDays(input.weekStart, index)
+          const weekday = parseLocalDateSafe(localDate).toLocaleDateString("en-US", {
+            weekday: "short",
+          })
           return {
             localDate,
-            label: parseLocalDateSafe(localDate).toLocaleDateString("en-US", { weekday: "short" }),
+            label: `${weekday} ${Number(localDate.slice(8))}`,
             netCents: byDate.get(localDate) ?? 0,
           }
         })
@@ -107,12 +114,25 @@ export function summarizeStats(input: {
           },
         )
 
+  const bestDay =
+    days.reduce<DailyPoint | null>((best, day) => {
+      if (day.netCents <= 0) {
+        return best
+      }
+      if (!best || day.netCents > best.netCents) {
+        return day
+      }
+      return best
+    }, null)
+
   return {
     netIncomeCents,
     totalTipsCents,
+    tipOutCents,
     averageHourlyCents: hoursWorked > 0 ? Math.round(netIncomeCents / hoursWorked) : null,
     shiftsWorked: inRange.length,
     hoursWorked,
+    bestDay,
     days,
   }
 }

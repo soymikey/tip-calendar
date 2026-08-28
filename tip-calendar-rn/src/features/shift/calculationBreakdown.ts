@@ -2,7 +2,7 @@ import { formatUsd } from "../../domain/money"
 import type { Restaurant } from "../../domain/restaurant"
 import type { ShiftIncome } from "../../domain/shift"
 
-import { previewShiftIncome, resolveShiftHours, type ShiftDraft } from "./shiftDraft"
+import { resolveShiftHours, type ShiftDraft } from "./shiftDraft"
 
 export type BreakdownLine = {
   label: string

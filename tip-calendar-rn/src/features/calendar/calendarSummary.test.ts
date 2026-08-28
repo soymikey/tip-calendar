@@ -1,7 +1,7 @@
 import { createRestaurant } from "../../domain/restaurant"
 import { createShift } from "../../domain/shift"
 
-import { summarizeCalendar } from "./calendarSummary"
+import { summarizeCalendar, hasShiftsInMonth } from "./calendarSummary"
 
 const restaurant = createRestaurant({
   name: "Bluebird",
@@ -55,5 +55,17 @@ describe("summarizeCalendar", () => {
     })
     expect(summary.weekCents).toBe(8000)
     expect(summary.monthCents).toBe(8000)
+  })
+})
+
+describe("hasShiftsInMonth", () => {
+  it("is false for a month that has no shifts even when other months do", () => {
+    expect(
+      hasShiftsInMonth([shift("2026-08-16", 10000), shift("2026-08-21", 20700)], 2026, 9),
+    ).toBe(false)
+  })
+
+  it("is true when the viewed month has a shift", () => {
+    expect(hasShiftsInMonth([shift("2026-08-16", 10000)], 2026, 8)).toBe(true)
   })
 })

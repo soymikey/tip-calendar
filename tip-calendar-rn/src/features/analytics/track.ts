@@ -1,3 +1,7 @@
+import { isExpoGo } from "./expoRuntime"
+
+/* eslint-disable @typescript-eslint/no-require-imports */
+
 export const AnalyticsEvent = {
   shiftSaved: "shift_saved",
   onboardingCompleted: "onboarding_completed",
@@ -50,6 +54,12 @@ export async function track(name: AnalyticsEventName, params?: AnalyticsParams):
 }
 
 export async function enableNativeAnalytics(): Promise<void> {
+  if (isExpoGo()) {
+    if (__DEV__) {
+      console.warn("Firebase skipped (Expo Go or native module missing)")
+    }
+    return
+  }
   try {
     const native = require("./firebaseNative") as typeof import("./firebaseNative")
     await native.initFirebaseNative()

@@ -1,5 +1,7 @@
 import type { AnalyticsEventName, AnalyticsParams, AnalyticsReporter } from "./track"
 
+/* eslint-disable @typescript-eslint/no-require-imports */
+
 export const logFirebaseEvent: AnalyticsReporter = async (name, params) => {
   const analytics = require("@react-native-firebase/analytics").default as () => {
     logEvent(event: AnalyticsEventName, eventParams?: AnalyticsParams): Promise<void>

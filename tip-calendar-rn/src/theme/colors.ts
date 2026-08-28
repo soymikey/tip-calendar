@@ -9,4 +9,5 @@ export const colors = {
   danger: "#D70015",
   warning: "#FF9500",
   overlay: "rgba(0,0,0,0.4)",
+  today: "#E3F1FE",
 } as const

@@ -8,7 +8,7 @@
     "scheme": "tipcalendar",
     "userInterfaceStyle": "light",
     "ios": {
-      "icon": "./assets/expo.icon",
+      "icon": "./assets/images/icon.png",
       "bundleIdentifier": "app.tipcalendar",
       "googleServicesFile": "./GoogleService-Info.plist",
       "buildNumber": "1",
@@ -63,6 +63,11 @@
       "predictiveBackGestureEnabled": false,
       "blockedPermissions": [
         "com.google.android.gms.permission.AD_ID"
+      ],
+      "permissions": [
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.INTERNET"
       ]
     },
     "web": {
@@ -106,7 +111,11 @@
         {
           "ios": {
             "useFrameworks": "static",
-            "forceStaticLinking": ["RNFBApp", "RNFBAnalytics", "RNFBCrashlytics"]
+            "forceStaticLinking": [
+              "RNFBApp",
+              "RNFBAnalytics",
+              "RNFBCrashlytics"
+            ]
           }
         }
       ]
@@ -114,6 +123,13 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "b7eceed2-b295-467f-a272-f6eb3b8b9d33"
+      }
+    },
+    "owner": "soymikey-zhengs-team"
   }
 }

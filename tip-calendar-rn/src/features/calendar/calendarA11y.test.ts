@@ -10,4 +10,10 @@ describe("calendarDayAccessibilityLabel", () => {
       "Monday, August 24, $207.00",
     )
   })
+
+  it("prefixes today", () => {
+    expect(calendarDayAccessibilityLabel("2026-08-24", undefined, true)).toBe(
+      "Today, Monday, August 24",
+    )
+  })
 })

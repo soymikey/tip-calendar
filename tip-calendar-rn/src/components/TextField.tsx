@@ -11,6 +11,7 @@ type TextFieldProps = {
   prefix?: string
   suffix?: string
   accessibilityLabel?: string
+  testID?: string
   variant?: "filled" | "outline"
   tone?: "default" | "error" | "warning"
   message?: string
@@ -28,6 +29,7 @@ export function TextField({
   prefix,
   suffix,
   accessibilityLabel,
+  testID,
   variant = "filled",
   tone = "default",
   message,
@@ -60,6 +62,7 @@ export function TextField({
         {prefix ? <Text className="mr-1 text-[16px] text-[#8E8E93]">{prefix}</Text> : null}
         <TextInput
           accessibilityLabel={accessibilityLabel ?? label}
+          testID={testID}
           className="min-h-[22px] flex-1 text-[16px] text-[#1C1C1E]"
           editable={editable}
           keyboardType={keyboardType}

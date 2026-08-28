@@ -1,8 +1,14 @@
+import { PAY_OPTIONS, TIP_OUT_OPTIONS } from "../restaurant/payAndTipOutOptions"
 import { canContinueStep, completeOnboarding, reduceOnboarding } from "./onboardingDraft"
 
 const start = reduceOnboarding(undefined, { type: "init" })
 
 describe("onboardingDraft", () => {
+  it("defaults salary type and tip-out type to the first options", () => {
+    expect(start.payType).toBe(PAY_OPTIONS[0]?.value)
+    expect(start.tipOutRule.type).toBe(TIP_OUT_OPTIONS[0]?.value)
+  })
+
   it("blocks step 1 Next without a trimmed name", () => {
     expect(canContinueStep(start)).toBe(false)
     const named = reduceOnboarding(start, { type: "setName", name: "  Bluebird  " })
@@ -68,7 +74,18 @@ describe("onboardingDraft", () => {
   it("requires an amount when hourly or fixed is selected", () => {
     let draft = reduceOnboarding(start, { type: "setName", name: "Bluebird" })
     draft = reduceOnboarding(draft, { type: "next" })
+    expect(draft.payType).toBe("hourly")
+    expect(canContinueStep(draft)).toBe(false)
     draft = reduceOnboarding(draft, { type: "setPay", payType: "hourly", payAmountCents: 0 })
+    expect(canContinueStep(draft)).toBe(false)
+  })
+
+  it("requires a percent when % sales is selected", () => {
+    let draft = reduceOnboarding(start, { type: "setName", name: "Bluebird" })
+    draft = reduceOnboarding(draft, { type: "next" })
+    draft = reduceOnboarding(draft, { type: "setPay", payType: "hourly", payAmountCents: 1800 })
+    draft = reduceOnboarding(draft, { type: "next" })
+    expect(draft.tipOutRule.type).toBe("sales_percent")
     expect(canContinueStep(draft)).toBe(false)
   })
 })

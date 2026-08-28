@@ -3,6 +3,7 @@ import {
   buildMonthGrid,
   endOfWeek,
   groupNetIncomeByLocalDate,
+  isFutureLocalDate,
   startOfWeek,
   weekdayLetters,
 } from "./calendar"
@@ -44,6 +45,14 @@ describe("startOfWeek", () => {
 
   it("starts on Monday when preferences say so", () => {
     expect(startOfWeek("2026-08-21", 1)).toBe("2026-08-17")
+  })
+})
+
+describe("isFutureLocalDate", () => {
+  it("treats dates after today as future", () => {
+    expect(isFutureLocalDate("2026-08-25", "2026-08-24")).toBe(true)
+    expect(isFutureLocalDate("2026-08-24", "2026-08-24")).toBe(false)
+    expect(isFutureLocalDate("2026-08-23", "2026-08-24")).toBe(false)
   })
 })
 

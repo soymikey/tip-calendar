@@ -5,12 +5,14 @@ import { SafeAreaView } from "react-native-safe-area-context"
 
 import { CalendarMonth, defaultSelectedDate } from "@/features/calendar/CalendarMonth"
 import { DayDetailsSheet } from "@/features/calendar/DayDetailsSheet"
-import { summarizeCalendar } from "@/features/calendar/calendarSummary"
-import { nextCalendarPress } from "@/features/calendar/calendarPress"
+import { summarizeCalendar, hasShiftsInMonth } from "@/features/calendar/calendarSummary"
+import { nextCalendarPress, nextFilledDate } from "@/features/calendar/calendarPress"
 import { EmptyShiftOverlay } from "@/features/calendar/EmptyShiftOverlay"
 import { UndoToast } from "@/features/calendar/UndoToast"
+import { FUTURE_SHIFT_HINT, warnFutureDate } from "@/features/calendar/futureDate"
+import { HintToast } from "@/components/HintToast"
 import { formatUsd } from "@/domain/money"
-import { parseLocalDate } from "@/domain/calendar"
+import { isFutureLocalDate, parseLocalDate, toLocalDate } from "@/domain/calendar"
 import type { Shift } from "@/domain/shift"
 import {
   insertShiftAt,
@@ -22,6 +24,7 @@ import { useAppState } from "@/state/AppStateContext"
 import { colors } from "@/theme/colors"
 
 const UNDO_MS = 5000
+const HINT_MS = 2500
 
 export default function CalendarScreen() {
   const { state, updateState } = useAppState()
@@ -33,11 +36,17 @@ export default function CalendarScreen() {
   )
   const [showEmptyHint, setShowEmptyHint] = useState(true)
   const [sheetDate, setSheetDate] = useState<string | null>(null)
+  const [filledLocalDate, setFilledLocalDate] = useState<string | null>(null)
+  const [peekedLocalDate, setPeekedLocalDate] = useState<string | null>(null)
   const [undo, setUndo] = useState<{ shift: Shift; index: number } | null>(null)
+  const [futureHint, setFutureHint] = useState(false)
   const undoTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const armedLocalDate = useRef<string | null>(null)
+  const hintTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const openingRef = useRef(false)
+  const todayLocalDate = toLocalDate(now)
   const hasShifts = state.shifts.length > 0
-  const showOverlay = !hasShifts && showEmptyHint
+  const monthHasShifts = hasShiftsInMonth(state.shifts, year, month)
+  const showOverlay = !monthHasShifts && showEmptyHint
   const sheetShifts = sheetDate ? shiftsOnDate(state.shifts, sheetDate) : []
 
   const summary = useMemo(
@@ -54,10 +63,11 @@ export default function CalendarScreen() {
   )
 
   function changeMonth(nextYear: number, nextMonth: number) {
-    armedLocalDate.current = null
+    setPeekedLocalDate(null)
     setYear(nextYear)
     setMonth(nextMonth)
     setSelectedLocalDate(defaultSelectedDate(nextYear, nextMonth))
+    setShowEmptyHint(true)
   }
 
   useEffect(() => {
@@ -65,29 +75,53 @@ export default function CalendarScreen() {
       if (undoTimer.current) {
         clearTimeout(undoTimer.current)
       }
+      if (hintTimer.current) {
+        clearTimeout(hintTimer.current)
+      }
     }
   }, [])
 
   useFocusEffect(
     useCallback(() => {
+      openingRef.current = false
       const date = takeOpenDateRequest()
       if (!date) {
         return
       }
       const parsed = parseLocalDate(date)
-      armedLocalDate.current = date
+      setPeekedLocalDate(date)
       setShowEmptyHint(false)
       setYear(parsed.getFullYear())
       setMonth(parsed.getMonth() + 1)
       setSelectedLocalDate(date)
+      if (isFutureLocalDate(date, todayLocalDate)) {
+        setFilledLocalDate(null)
+        setSheetDate(null)
+        showFutureHint()
+        return
+      }
+      setFilledLocalDate(date)
       if (shiftsOnDate(state.shifts, date).length === 0) {
         setSheetDate(null)
+        openingRef.current = true
         router.push({ pathname: "/shift/new", params: { date } })
         return
       }
       setSheetDate(date)
-    }, [state.shifts]),
+    }, [state.shifts, todayLocalDate]),
   )
+
+  function showFutureHint() {
+    void warnFutureDate()
+    setFutureHint(true)
+    if (hintTimer.current) {
+      clearTimeout(hintTimer.current)
+    }
+    hintTimer.current = setTimeout(() => {
+      setFutureHint(false)
+      hintTimer.current = null
+    }, HINT_MS)
+  }
 
   function clearUndoTimer() {
     if (undoTimer.current) {
@@ -98,7 +132,11 @@ export default function CalendarScreen() {
 
   function openDate(localDate: string) {
     if (shiftsOnDate(state.shifts, localDate).length === 0) {
+      if (openingRef.current) {
+        return
+      }
       setSheetDate(null)
+      openingRef.current = true
       router.push({ pathname: "/shift/new", params: { date: localDate } })
       return
     }
@@ -107,9 +145,14 @@ export default function CalendarScreen() {
 
   function selectDate(localDate: string) {
     setShowEmptyHint(false)
-    const next = nextCalendarPress(armedLocalDate.current, localDate)
-    armedLocalDate.current = next.armedLocalDate
+    const next = nextCalendarPress(peekedLocalDate, localDate, openingRef.current)
+    setPeekedLocalDate(next.armedLocalDate)
     setSelectedLocalDate(next.selectedLocalDate)
+    setFilledLocalDate(nextFilledDate(filledLocalDate, localDate, next.open && !isFutureLocalDate(localDate, todayLocalDate)))
+    if (next.open && isFutureLocalDate(localDate, todayLocalDate)) {
+      showFutureHint()
+      return
+    }
     if (next.open) {
       openDate(localDate)
     }
@@ -197,11 +240,19 @@ export default function CalendarScreen() {
           year={year}
           month={month}
           selectedLocalDate={selectedLocalDate}
+          peekedLocalDate={peekedLocalDate}
+          filledLocalDate={filledLocalDate}
+          todayLocalDate={todayLocalDate}
           weekStartsOn={state.preferences.weekStartsOn}
           amountsByDate={summary.byDate}
           faded={showOverlay}
           overlay={
-            showOverlay ? <EmptyShiftOverlay onDismiss={() => setShowEmptyHint(false)} /> : null
+            showOverlay ? (
+              <EmptyShiftOverlay
+                hasAnyShifts={hasShifts}
+                onDismiss={() => setShowEmptyHint(false)}
+              />
+            ) : null
           }
           belowHeader={
             <View className="flex-row gap-2 px-5 py-1">
@@ -228,11 +279,17 @@ export default function CalendarScreen() {
             shifts={sheetShifts}
             restaurants={state.restaurants}
             timeFormat={state.preferences.timeFormat}
-            onClose={() => setSheetDate(null)}
-            onAdd={() => openNewShift(sheetDate)}
-            onEdit={(shiftId) =>
+            onClose={() => {
+              setSheetDate(null)
+            }}
+            onAdd={() => {
+              setSheetDate(null)
+              openNewShift(sheetDate)
+            }}
+            onEdit={(shiftId) => {
+              setSheetDate(null)
               router.push({ pathname: "/shift/[id]", params: { id: shiftId } })
-            }
+            }}
             onDelete={requestDelete}
           />
         ) : null}
@@ -244,6 +301,7 @@ export default function CalendarScreen() {
             }}
           />
         ) : null}
+        {futureHint ? <HintToast message={FUTURE_SHIFT_HINT} /> : null}
       </View>
     </SafeAreaView>
   )

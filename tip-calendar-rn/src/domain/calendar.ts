@@ -30,6 +30,10 @@ export function startOfWeek(localDate: LocalDate, weekStartsOn: WeekStartsOn): L
   return toLocalDate(date)
 }
 
+export function isFutureLocalDate(localDate: LocalDate, today: LocalDate): boolean {
+  return localDate > today
+}
+
 export function addDays(localDate: LocalDate, days: number): LocalDate {
   const date = parseLocalDate(localDate)
   date.setDate(date.getDate() + days)
@@ -50,12 +54,12 @@ export function buildMonthGrid(
   year: number,
   month: number,
   weekStartsOn: WeekStartsOn,
-): Array<Array<MonthCell | null>> {
+): (MonthCell | null)[][] {
   const first = new Date(year, month - 1, 1)
   const firstWeekday = first.getDay()
   const leading = (firstWeekday - weekStartsOn + 7) % 7
   const daysInMonth = new Date(year, month, 0).getDate()
-  const cells: Array<MonthCell | null> = Array.from({ length: leading }, () => null)
+  const cells: (MonthCell | null)[] = Array.from({ length: leading }, () => null)
 
   for (let day = 1; day <= daysInMonth; day += 1) {
     const localDate = `${year}-${pad(month)}-${pad(day)}`
@@ -66,7 +70,7 @@ export function buildMonthGrid(
     cells.push(null)
   }
 
-  const rows: Array<Array<MonthCell | null>> = []
+  const rows: (MonthCell | null)[][] = []
   for (let index = 0; index < cells.length; index += 7) {
     rows.push(cells.slice(index, index + 7))
   }

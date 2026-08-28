@@ -4,14 +4,16 @@ import { formatUsd, type Cents } from "../../domain/money"
 export function calendarDayAccessibilityLabel(
   localDate: string,
   amountCents?: Cents,
+  isToday = false,
 ): string {
   const dateText = parseLocalDate(localDate).toLocaleDateString("en-US", {
     weekday: "long",
     month: "long",
     day: "numeric",
   })
+  const labeled = isToday ? `Today, ${dateText}` : dateText
   if (amountCents === undefined) {
-    return dateText
+    return labeled
   }
-  return `${dateText}, ${formatUsd(amountCents)}`
+  return `${labeled}, ${formatUsd(amountCents)}`
 }

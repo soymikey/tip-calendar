@@ -1,3 +1,4 @@
+import { newEntityId } from "./id"
 import type { Cents } from "./money"
 
 export type PayType = "hourly" | "fixed" | "none"
@@ -45,7 +46,7 @@ export function createRestaurant(input: {
   }
   const now = input.now ?? new Date().toISOString()
   return {
-    id: input.id ?? crypto.randomUUID(),
+    id: input.id ?? newEntityId(),
     name,
     payType: input.payType ?? "none",
     payAmountCents: input.payAmountCents ?? 0,

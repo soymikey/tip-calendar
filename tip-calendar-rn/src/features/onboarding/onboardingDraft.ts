@@ -1,4 +1,5 @@
 import { createRestaurant, type PayType, type Restaurant, type TipOutRule } from "../../domain/restaurant"
+import { PAY_OPTIONS, TIP_OUT_OPTIONS } from "../restaurant/payAndTipOutOptions"
 
 export type OnboardingStep = 1 | 2 | 3
 
@@ -19,6 +20,34 @@ export type OnboardingAction =
   | { type: "setTipOut"; rule: TipOutRule }
   | { type: "skip" }
 
+function defaultTipOutRule(): TipOutRule {
+  const type = TIP_OUT_OPTIONS[0]?.value ?? "none"
+  if (type === "fixed") {
+    return { type: "fixed", amountCents: 0 }
+  }
+  if (type === "sales_percent" || type === "tips_percent") {
+    return { type, percent: 0 }
+  }
+  return { type: "none" }
+}
+
+function unsetIncompletePay(draft: OnboardingDraft): Pick<OnboardingDraft, "payType" | "payAmountCents"> {
+  if (draft.payType !== "none" && draft.payAmountCents <= 0) {
+    return { payType: "none", payAmountCents: 0 }
+  }
+  return { payType: draft.payType, payAmountCents: draft.payAmountCents }
+}
+
+function unsetIncompleteTipOut(rule: TipOutRule): TipOutRule {
+  if (rule.type === "fixed" && rule.amountCents <= 0) {
+    return { type: "none" }
+  }
+  if ((rule.type === "sales_percent" || rule.type === "tips_percent") && rule.percent <= 0) {
+    return { type: "none" }
+  }
+  return rule
+}
+
 export function reduceOnboarding(
   draft: OnboardingDraft | undefined,
   action: OnboardingAction,
@@ -28,9 +57,9 @@ export function reduceOnboarding(
     {
       step: 1,
       name: "",
-      payType: "none",
+      payType: PAY_OPTIONS[0]?.value ?? "none",
       payAmountCents: 0,
-      tipOutRule: { type: "none" },
+      tipOutRule: defaultTipOutRule(),
     }
 
   switch (action.type) {
@@ -47,7 +76,12 @@ export function reduceOnboarding(
     case "setTipOut":
       return { ...current, tipOutRule: action.rule }
     case "skip":
-      return { ...current, name: current.name.trim() || "My Restaurant" }
+      return {
+        ...current,
+        name: current.name.trim() || "My Restaurant",
+        ...unsetIncompletePay(current),
+        tipOutRule: unsetIncompleteTipOut(current.tipOutRule),
+      }
   }
 }
 

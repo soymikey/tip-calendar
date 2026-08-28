@@ -5,17 +5,11 @@ import { SegmentedControl } from "@/components/SegmentedControl"
 import { TextField } from "@/components/TextField"
 import { dollarsToCents } from "@/domain/money"
 import type { TipOutRule } from "@/domain/restaurant"
+import { TIP_OUT_OPTIONS } from "@/features/restaurant/payAndTipOutOptions"
 
 import type { OnboardingDraft } from "./onboardingDraft"
 
 type TipOutKind = TipOutRule["type"]
-
-const RULE_OPTIONS: { value: TipOutKind; label: string }[] = [
-  { value: "none", label: "None" },
-  { value: "fixed", label: "Fixed" },
-  { value: "sales_percent", label: "% Sales" },
-  { value: "tips_percent", label: "% Tips" },
-]
 
 const RULE_HELP: Record<TipOutKind, string> = {
   none: "No tip-out will be deducted.",
@@ -98,8 +92,8 @@ export function StepTipOut({ draft, onChangeRule }: StepTipOutProps) {
   return (
     <View className="w-full gap-5">
       <View className="w-full gap-2">
-        <Text className="text-[13px] font-semibold uppercase text-[#8E8E93]">Rule type</Text>
-        <SegmentedControl options={RULE_OPTIONS} value={kind} onChange={changeKind} />
+        <Text className="text-[13px] font-semibold uppercase text-[#8E8E93]">Tip-out type</Text>
+        <SegmentedControl options={TIP_OUT_OPTIONS} value={kind} onChange={changeKind} />
       </View>
       {kind === "fixed" ? (
         <TextField

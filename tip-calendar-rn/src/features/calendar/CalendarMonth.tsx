@@ -5,12 +5,16 @@ import { SymbolView } from "expo-symbols"
 import { buildMonthGrid, weekdayLetters, toLocalDate, type LocalDate, type WeekStartsOn } from "@/domain/calendar"
 import { formatUsd } from "@/domain/money"
 import { calendarDayAccessibilityLabel } from "@/features/calendar/calendarA11y"
+import { calendarCellChrome } from "@/features/calendar/calendarPress"
 import { colors } from "@/theme/colors"
 
 type CalendarMonthProps = {
   year: number
   month: number
   selectedLocalDate: LocalDate
+  peekedLocalDate?: LocalDate | null
+  filledLocalDate?: LocalDate | null
+  todayLocalDate?: LocalDate
   weekStartsOn?: WeekStartsOn
   amountsByDate?: Map<LocalDate, number>
   faded?: boolean
@@ -43,6 +47,9 @@ export function CalendarMonth({
   year,
   month,
   selectedLocalDate,
+  peekedLocalDate = null,
+  filledLocalDate = null,
+  todayLocalDate,
   weekStartsOn = 0,
   amountsByDate,
   faded = false,
@@ -109,45 +116,49 @@ export function CalendarMonth({
                   if (!cell) {
                     return <View key={`empty-${rowIndex}-${cellIndex}`} className="h-[52px] flex-1" />
                   }
-                  const selected = cell.localDate === selectedLocalDate
+                  const isToday = cell.localDate === todayLocalDate
+                  const chrome = calendarCellChrome({
+                    selected: cell.localDate === selectedLocalDate,
+                    filled: cell.localDate === filledLocalDate,
+                    peeked: cell.localDate === peekedLocalDate,
+                    isToday,
+                  })
                   const amount = amountsByDate?.get(cell.localDate)
                   return (
                     <Pressable
                       key={cell.localDate}
                       accessibilityRole="button"
-                      accessibilityLabel={calendarDayAccessibilityLabel(cell.localDate, amount)}
+                      accessibilityLabel={calendarDayAccessibilityLabel(
+                        cell.localDate,
+                        amount,
+                        isToday,
+                      )}
                       className="relative h-[52px] flex-1 items-center justify-center rounded-lg"
-                      style={({ pressed }) => {
-                        const confirmed = selected && pressed
-                        return {
-                          borderWidth: 2,
-                          borderColor: selected && !confirmed ? colors.action : "transparent",
-                          backgroundColor: confirmed ? colors.action : "transparent",
-                        }
+                      style={{
+                        borderWidth: 2,
+                        borderColor: chrome.border ? colors.action : "transparent",
+                        backgroundColor: chrome.fill
+                          ? colors.action
+                          : chrome.todayWash
+                            ? colors.today
+                            : "transparent",
                       }}
                       onPress={() => onSelectDate(cell.localDate)}>
-                      {({ pressed }) => {
-                        const confirmed = selected && pressed
-                        return (
-                          <>
-                            <Text
-                              className="text-[14px] font-medium"
-                              style={{
-                                color: confirmed ? "#FFFFFF" : "#1C1C1E",
-                                fontWeight: confirmed ? "700" : "500",
-                              }}>
-                              {cell.day}
-                            </Text>
-                            {amount !== undefined ? (
-                              <Text
-                                className="absolute bottom-0.5 text-[11px] font-semibold"
-                                style={{ color: confirmed ? "#FFFFFF" : colors.income }}>
-                                {formatUsd(amount, { compact: true })}
-                              </Text>
-                            ) : null}
-                          </>
-                        )
-                      }}
+                      <Text
+                        className="text-[14px] font-medium"
+                        style={{
+                          color: chrome.fill ? "#FFFFFF" : "#1C1C1E",
+                          fontWeight: chrome.fill ? "700" : "500",
+                        }}>
+                        {cell.day}
+                      </Text>
+                      {amount !== undefined ? (
+                        <Text
+                          className="absolute bottom-0.5 text-[11px] font-semibold"
+                          style={{ color: chrome.fill ? "#FFFFFF" : colors.income }}>
+                          {formatUsd(amount, { compact: true })}
+                        </Text>
+                      ) : null}
                     </Pressable>
                   )
                 })}
