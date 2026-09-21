@@ -2,16 +2,29 @@ import renderer, { act, type ReactTestRenderer } from "react-test-renderer"
 import { View } from "react-native"
 
 const mockUseAds = jest.fn()
-const mockBannerAd = jest.fn(() => null)
+type BannerProps = {
+  onAdLoaded: () => void
+  onAdFailedToLoad: () => void
+}
+const mockBannerAd = jest.fn<null, [BannerProps]>(() => null)
 
 jest.mock("./AdProvider", () => ({ useAds: () => mockUseAds() }))
 jest.mock("react-native-google-mobile-ads", () => ({
-  BannerAd: (props: unknown) => mockBannerAd(props),
+  BannerAd: (props: unknown) => mockBannerAd(props as BannerProps),
   BannerAdSize: { ANCHORED_ADAPTIVE_BANNER: "ANCHORED_ADAPTIVE_BANNER" },
   TestIds: { ADAPTIVE_BANNER: "test-adaptive-banner" },
 }))
 
+// eslint-disable-next-line import/first
 import { AdBannerSlot } from "./AdBannerSlot"
+
+function latestBannerProps(): BannerProps {
+  const call = mockBannerAd.mock.calls[mockBannerAd.mock.calls.length - 1]
+  if (!call) {
+    throw new Error("BannerAd was not rendered")
+  }
+  return call[0]
+}
 
 describe("AdBannerSlot", () => {
   beforeEach(() => {
@@ -38,7 +51,7 @@ describe("AdBannerSlot", () => {
       expect.objectContaining({ height: 0 }),
     )
 
-    act(() => mockBannerAd.mock.calls.at(-1)?.[0].onAdLoaded())
+    act(() => latestBannerProps().onAdLoaded())
     expect(tree?.root.findByType(View).props.style).toEqual(
       expect.objectContaining({ height: "auto" }),
     )
@@ -49,7 +62,7 @@ describe("AdBannerSlot", () => {
     act(() => {
       tree = renderer.create(<AdBannerSlot testID="ad-slot" />)
     })
-    act(() => mockBannerAd.mock.calls.at(-1)?.[0].onAdFailedToLoad())
+    act(() => latestBannerProps().onAdFailedToLoad())
     expect(tree?.toJSON()).toBeNull()
   })
 })

@@ -9,6 +9,7 @@ jest.mock("react-native-google-mobile-ads", () => ({
   AdsConsentPrivacyOptionsRequirementStatus: { REQUIRED: "REQUIRED" },
 }))
 
+// eslint-disable-next-line import/first
 import { requestAdConsent, showAdPrivacyOptions } from "./adConsent"
 
 describe("ad consent", () => {

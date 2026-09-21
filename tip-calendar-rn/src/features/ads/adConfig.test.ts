@@ -13,6 +13,7 @@ jest.mock("@react-native-firebase/remote-config", () => ({
   }),
 }))
 
+// eslint-disable-next-line import/first
 import { loadShowAd, resetAdConfigForTests } from "./adConfig"
 
 describe("loadShowAd", () => {

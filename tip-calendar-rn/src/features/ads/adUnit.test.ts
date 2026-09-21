@@ -2,6 +2,7 @@ jest.mock("react-native-google-mobile-ads", () => ({
   TestIds: { ADAPTIVE_BANNER: "test-adaptive-banner" },
 }))
 
+// eslint-disable-next-line import/first
 import { getBannerAdUnitId } from "./adUnit"
 
 describe("getBannerAdUnitId", () => {
