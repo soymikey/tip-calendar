@@ -24,6 +24,10 @@ const PRIVACY_SECTIONS = [
     body: "If you choose Allow, this version sends usage counts, an app-install identifier, approximate location, device details, and crash reports to Google Firebase. It does not upload shift amounts, restaurant names, dates, or notes. This data is not used for advertising or tied to an account. You can turn collection off under Preferences.",
   },
   {
+    title: "Advertising and your choices",
+    body: "When remotely enabled, Google AdMob may show a banner on Calendar and Stats after its consent process allows an ad request. AdMob may process device, approximate location, and ad interaction information. Tip Calendar does not send your income, tips, shifts, restaurant names, dates, or notes to AdMob. Where required, you can review your choices under Preferences.",
+  },
+  {
     title: "Export is your choice",
     body: "CSV and JSON export only happen when you choose to export. Exported files are yours to save, share, or delete.",
   },

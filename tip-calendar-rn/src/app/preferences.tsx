@@ -1,10 +1,11 @@
-import { ScrollView, Switch, Text, View } from "react-native"
+import { Alert, ScrollView, Switch, Text, View } from "react-native"
 import { SafeAreaView } from "react-native-safe-area-context"
 import { SymbolView } from "expo-symbols"
 
 import { SettingsGroup, SettingsRow } from "@/components/SettingsRow"
 import { StackHeader } from "@/components/StackHeader"
 import type { WeekStartsOn } from "@/domain/calendar"
+import { useAds } from "@/features/ads/AdProvider"
 import { useAppState } from "@/state/AppStateContext"
 import { colors } from "@/theme/colors"
 
@@ -34,6 +35,7 @@ function Check({ selected }: { selected: boolean }) {
 
 export default function PreferencesScreen() {
   const { state, updateState } = useAppState()
+  const { openPrivacyOptions, privacyOptionsRequired } = useAds()
   const { weekStartsOn, timeFormat, currencySymbol } = state.preferences
 
   async function setWeekStartsOn(value: WeekStartsOn) {
@@ -55,6 +57,14 @@ export default function PreferencesScreen() {
       ...current,
       preferences: { ...current.preferences, analyticsConsent: value },
     }))
+  }
+
+  async function openAdPrivacyChoices() {
+    try {
+      await openPrivacyOptions()
+    } catch {
+      Alert.alert("Unable to open privacy choices", "Please check your connection and try again.")
+    }
   }
 
   return (
@@ -118,6 +128,13 @@ export default function PreferencesScreen() {
                 />
               }
             />
+            {privacyOptionsRequired ? (
+              <SettingsRow
+                title="Ad privacy choices"
+                subtitle="Review or change your advertising consent"
+                onPress={() => void openAdPrivacyChoices()}
+              />
+            ) : null}
           </SettingsGroup>
         </View>
       </ScrollView>
