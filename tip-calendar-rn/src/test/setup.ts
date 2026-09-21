@@ -17,3 +17,11 @@ jest.mock("@react-native-firebase/crashlytics", () => ({
     setCrashlyticsCollectionEnabled: jest.fn().mockResolvedValue(undefined),
   }),
 }))
+jest.mock("@react-native-firebase/remote-config", () => ({
+  default: () => ({
+    setDefaults: jest.fn().mockResolvedValue(undefined),
+    setConfigSettings: jest.fn().mockResolvedValue(undefined),
+    fetchAndActivate: jest.fn().mockResolvedValue(false),
+    getValue: jest.fn(() => ({ asBoolean: () => false })),
+  }),
+}))
