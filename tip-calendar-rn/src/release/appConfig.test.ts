@@ -7,7 +7,7 @@ const serialized = JSON.stringify(app)
 describe("iOS release config", () => {
   it("uses the Tip Calendar name and a stable bundle id", () => {
     expect(app.expo.name).toBe("Tip Calendar")
-    expect(app.expo.ios?.buildNumber).toBe("4")
+    expect(app.expo.ios?.buildNumber).toBe("6")
     expect(app.expo.ios?.bundleIdentifier).toBe("app.tipcalendar")
     expect(app.expo.ios?.supportsTablet).toBe(false)
   })
@@ -41,6 +41,11 @@ describe("iOS release config", () => {
   it("configures AdMob without enabling Firebase collection before consent", () => {
     expect(serialized).toContain("react-native-google-mobile-ads")
     expect(serialized).toContain("ca-app-pub-3534156575856999~3337306828")
+    expect(
+      (app as { "react-native-google-mobile-ads"?: { ios_app_id?: string } })[
+        "react-native-google-mobile-ads"
+      ]?.ios_app_id,
+    ).toBe("ca-app-pub-3534156575856999~3337306828")
     expect(firebase["react-native"].analytics_auto_collection_enabled).toBe(false)
     expect(firebase["react-native"].crashlytics_auto_collection_enabled).toBe(false)
   })

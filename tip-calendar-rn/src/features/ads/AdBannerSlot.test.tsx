@@ -4,7 +4,7 @@ import { View } from "react-native"
 const mockUseAds = jest.fn()
 type BannerProps = {
   onAdLoaded: () => void
-  onAdFailedToLoad: () => void
+  onAdFailedToLoad: (error: Error) => void
 }
 const mockBannerAd = jest.fn<null, [BannerProps]>(() => null)
 
@@ -27,6 +27,9 @@ function latestBannerProps(): BannerProps {
 }
 
 describe("AdBannerSlot", () => {
+  const logSpy = jest.spyOn(console, "info").mockImplementation(() => undefined)
+  const warnSpy = jest.spyOn(console, "warn").mockImplementation(() => undefined)
+
   beforeEach(() => {
     jest.clearAllMocks()
     mockUseAds.mockReturnValue({ eligible: true })
@@ -52,6 +55,7 @@ describe("AdBannerSlot", () => {
     )
 
     act(() => latestBannerProps().onAdLoaded())
+    expect(logSpy).toHaveBeenCalledWith("[Ads] banner loaded")
     expect(tree?.root.findByType(View).props.style).toEqual(
       expect.objectContaining({ height: "auto" }),
     )
@@ -62,7 +66,8 @@ describe("AdBannerSlot", () => {
     act(() => {
       tree = renderer.create(<AdBannerSlot testID="ad-slot" />)
     })
-    act(() => latestBannerProps().onAdFailedToLoad())
+    act(() => latestBannerProps().onAdFailedToLoad(new Error("no fill")))
+    expect(warnSpy).toHaveBeenCalledWith("[Ads] banner failed", { error: "no fill" })
     expect(tree?.toJSON()).toBeNull()
   })
 })

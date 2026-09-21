@@ -2,12 +2,14 @@ import { createContext, useCallback, useContext, useEffect, useState, type React
 
 import { createLocalStore } from "../storage/localStore"
 import { emptyState, type AppState } from "../storage/types"
+import { needsOnboarding } from "./session"
 
 const store = createLocalStore()
 
 type AppStateContextValue = {
   state: AppState
   ready: boolean
+  startedOnboarding: boolean
   updateState: (updater: (current: AppState) => AppState) => Promise<void>
 }
 
@@ -16,9 +18,11 @@ const AppStateContext = createContext<AppStateContextValue | null>(null)
 export function AppStateProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AppState>(emptyState)
   const [ready, setReady] = useState(false)
+  const [startedOnboarding, setStartedOnboarding] = useState(false)
 
   useEffect(() => {
     void store.load().then((loaded) => {
+      setStartedOnboarding(needsOnboarding(loaded))
       setState(loaded)
       setReady(true)
     })
@@ -32,7 +36,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   }, [])
 
   return (
-    <AppStateContext.Provider value={{ state, ready, updateState }}>
+    <AppStateContext.Provider value={{ state, ready, startedOnboarding, updateState }}>
       {children}
     </AppStateContext.Provider>
   )

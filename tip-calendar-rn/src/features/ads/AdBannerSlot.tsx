@@ -32,8 +32,14 @@ export function AdBannerSlot({ testID }: Props) {
         unitId={getBannerAdUnitId(getAdEnvironment())}
         size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
         requestOptions={{ requestNonPersonalizedAdsOnly: true }}
-        onAdLoaded={() => setLoaded(true)}
-        onAdFailedToLoad={() => setFailed(true)}
+        onAdLoaded={() => {
+          console.info("[Ads] banner loaded")
+          setLoaded(true)
+        }}
+        onAdFailedToLoad={(error: Error) => {
+          console.warn("[Ads] banner failed", { error: error.message })
+          setFailed(true)
+        }}
       />
     </View>
   )

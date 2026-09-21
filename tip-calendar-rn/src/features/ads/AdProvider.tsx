@@ -34,6 +34,12 @@ export function AdProvider({ children }: PropsWithChildren) {
     void Promise.all([loadShowAd(), requestAdConsent()]).then(async ([showAd, consent]) => {
       const eligible = isAdEligible(showAd, consent.canRequestAds)
       const initialized = eligible ? await initializeMobileAds() : false
+      console.info("[Ads] eligibility", {
+        showAd,
+        canRequestAds: consent.canRequestAds,
+        initialized,
+        eligible: eligible && initialized,
+      })
       if (active) {
         setState({
           ready: true,

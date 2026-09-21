@@ -171,7 +171,7 @@ export function StatsScreen() {
   return (
     <SafeAreaView className="flex-1 bg-white" edges={["top"]}>
       <View className="relative flex-1">
-      <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 32 }}>
+      <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 96 }}>
         <View className="px-5 pb-3 pt-4">
           <Text className="text-[32px] font-bold text-[#1C1C1E]">Stats</Text>
         </View>
