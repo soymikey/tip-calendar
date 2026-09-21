@@ -4,6 +4,7 @@ import { Alert, Text, View } from "react-native"
 import { SafeAreaView } from "react-native-safe-area-context"
 
 import { CalendarMonth, defaultSelectedDate } from "@/features/calendar/CalendarMonth"
+import { AdBannerSlot } from "@/features/ads/AdBannerSlot"
 import { DayDetailsSheet } from "@/features/calendar/DayDetailsSheet"
 import { summarizeCalendar, hasShiftsInMonth } from "@/features/calendar/calendarSummary"
 import { nextCalendarPress, nextFilledDate } from "@/features/calendar/calendarPress"
@@ -303,6 +304,7 @@ export default function CalendarScreen() {
         ) : null}
         {futureHint ? <HintToast message={FUTURE_SHIFT_HINT} /> : null}
       </View>
+      <AdBannerSlot />
     </SafeAreaView>
   )
 }
