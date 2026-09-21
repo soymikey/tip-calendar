@@ -25,3 +25,15 @@ jest.mock("@react-native-firebase/remote-config", () => ({
     getValue: jest.fn(() => ({ asBoolean: () => false })),
   }),
 }))
+jest.mock("react-native-google-mobile-ads", () => ({
+  __esModule: true,
+  default: () => ({ initialize: jest.fn().mockResolvedValue(undefined) }),
+  AdsConsent: {
+    gatherConsent: jest.fn().mockResolvedValue({
+      canRequestAds: false,
+      privacyOptionsRequirementStatus: "NOT_REQUIRED",
+    }),
+    showPrivacyOptionsForm: jest.fn().mockResolvedValue(undefined),
+  },
+  AdsConsentPrivacyOptionsRequirementStatus: { REQUIRED: "REQUIRED" },
+}))

@@ -5,6 +5,7 @@ import { Modal, Pressable, Text, View } from "react-native"
 import { SafeAreaProvider } from "react-native-safe-area-context"
 
 import { configureNativeAnalytics } from "@/features/analytics/track"
+import { AdProvider } from "@/features/ads/AdProvider"
 import { AppStateProvider, useAppState } from "@/state/AppStateContext"
 import { needsOnboarding } from "@/state/session"
 
@@ -14,9 +15,11 @@ export default function RootLayout() {
   return (
     <AppStateProvider>
       <SafeAreaProvider>
-        <StatusBar style="dark" />
-        <RootStack />
-        <AnalyticsConsent />
+        <AdProvider>
+          <StatusBar style="dark" />
+          <RootStack />
+          <AnalyticsConsent />
+        </AdProvider>
       </SafeAreaProvider>
     </AppStateProvider>
   )
