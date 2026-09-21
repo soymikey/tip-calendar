@@ -141,6 +141,13 @@
         }
       ],
       [
+        "react-native-google-mobile-ads",
+        {
+          "iosAppId": "ca-app-pub-3534156575856999~3337306828",
+          "delayAppMeasurementInit": true
+        }
+      ],
+      [
         "expo-build-properties",
         {
           "ios": {
@@ -148,7 +155,8 @@
             "forceStaticLinking": [
               "RNFBApp",
               "RNFBAnalytics",
-              "RNFBCrashlytics"
+              "RNFBCrashlytics",
+              "RNFBRemoteConfig"
             ]
           }
         }

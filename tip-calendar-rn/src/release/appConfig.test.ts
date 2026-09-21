@@ -1,5 +1,6 @@
 import app from "../../app.json"
 import eas from "../../eas.json"
+import firebase from "../../firebase.json"
 
 const serialized = JSON.stringify(app)
 
@@ -35,5 +36,12 @@ describe("iOS release config", () => {
   it("has EAS preview and production iOS profiles", () => {
     expect(eas.build?.preview).toBeDefined()
     expect(eas.build?.production).toBeDefined()
+  })
+
+  it("configures AdMob without enabling Firebase collection before consent", () => {
+    expect(serialized).toContain("react-native-google-mobile-ads")
+    expect(serialized).toContain("ca-app-pub-3534156575856999~3337306828")
+    expect(firebase["react-native"].analytics_auto_collection_enabled).toBe(false)
+    expect(firebase["react-native"].crashlytics_auto_collection_enabled).toBe(false)
   })
 })
