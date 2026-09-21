@@ -1,0 +1,24 @@
+{
+  "name": "Tip Calendar — Tip Tracker for US Restaurant Servers",
+  "short_name": "Tip Calendar",
+  "description": "Privacy-first tip and income tracker for US restaurant servers. Log shifts, auto-calculate tip-outs, and see real hourly pay — stored on your phone.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "browser",
+  "background_color": "#ffffff",
+  "theme_color": "#007AFF",
+  "lang": "en-US",
+  "dir": "ltr",
+  "icons": [
+    {
+      "src": "assets/images/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "assets/images/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

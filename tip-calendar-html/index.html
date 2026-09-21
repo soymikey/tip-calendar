@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Tip Calendar — Tip Tracker App for US Restaurant Servers</title>
+    <meta
+      name="description"
+      content="Tip Calendar is a free, privacy-first tip tracker for US restaurant servers. Log shifts in 30 seconds, auto-calculate tip-outs, and see your true hourly pay — stored on your phone, no account required."
+    />
+    <meta
+      name="keywords"
+      content="tip tracker, tip tracking app, restaurant server income, bartender tip calculator, tip-out calculator, US server payroll, hourly wage tracker, cash tips, card tips"
+    />
+    <meta name="author" content="Tip Calendar" />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <meta name="geo.region" content="US" />
+    <meta name="geo.placename" content="United States" />
+    <meta name="language" content="en-US" />
+    <link rel="canonical" href="https://tipcalendar.app/" />
+    <link rel="alternate" hreflang="en-US" href="https://tipcalendar.app/" />
+    <link rel="alternate" hreflang="x-default" href="https://tipcalendar.app/" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:site_name" content="Tip Calendar" />
+    <meta property="og:url" content="https://tipcalendar.app/" />
+    <meta property="og:title" content="Tip Calendar — Track Every Tip. Know Your Worth." />
+    <meta
+      property="og:description"
+      content="The privacy-first tip and income tracker for US restaurant servers. Automated tip-outs, calendar earnings, and real hourly pay. Free, no account."
+    />
+    <meta property="og:image" content="https://tipcalendar.app/assets/images/og-image.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Tip Calendar landing page: Track Every Tip. Know Your Worth." />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Tip Calendar — Track Every Tip. Know Your Worth." />
+    <meta
+      name="twitter:description"
+      content="Free tip tracker for US restaurant servers. Log shifts, auto tip-outs, on-device privacy."
+    />
+    <meta name="twitter:image" content="https://tipcalendar.app/assets/images/og-image.jpg" />
+
+    <meta name="theme-color" content="#007AFF" />
+    <meta name="apple-mobile-web-app-title" content="Tip Calendar" />
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/images/favicon-32.png" />
+    <link rel="apple-touch-icon" href="assets/images/apple-touch-icon.png" />
+    <link rel="manifest" href="site.webmanifest" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/styles.css" />
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Organization",
+            "@id": "https://tipcalendar.app/#org",
+            "name": "Tip Calendar",
+            "url": "https://tipcalendar.app/",
+            "logo": "https://tipcalendar.app/assets/images/icon-512.png",
+            "areaServed": { "@type": "Country", "name": "United States" }
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://tipcalendar.app/#website",
+            "url": "https://tipcalendar.app/",
+            "name": "Tip Calendar",
+            "inLanguage": "en-US",
+            "publisher": { "@id": "https://tipcalendar.app/#org" }
+          },
+          {
+            "@type": "WebPage",
+            "@id": "https://tipcalendar.app/#webpage",
+            "url": "https://tipcalendar.app/",
+            "name": "Tip Calendar — Tip Tracker App for US Restaurant Servers",
+            "isPartOf": { "@id": "https://tipcalendar.app/#website" },
+            "about": { "@id": "https://tipcalendar.app/#app" },
+            "inLanguage": "en-US",
+            "primaryImageOfPage": "https://tipcalendar.app/assets/images/og-image.jpg"
+          },
+          {
+            "@type": "SoftwareApplication",
+            "@id": "https://tipcalendar.app/#app",
+            "name": "Tip Calendar",
+            "alternateName": "Tip Tracker",
+            "applicationCategory": "FinanceApplication",
+            "operatingSystem": "iOS, Android",
+            "inLanguage": "en-US",
+            "description": "Privacy-first tip and income tracker for US restaurant servers. Record shifts, calculate tip-outs, and see true hourly pay. Data stays on the device. No account required.",
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "USD"
+            },
+            "audience": {
+              "@type": "Audience",
+              "audienceType": "Restaurant servers, bartenders, and tipped hospitality workers",
+              "geographicArea": { "@type": "Country", "name": "United States" }
+            },
+            "featureList": [
+              "Log a shift in under 30 seconds",
+              "Automatic tip-out deductions",
+              "Calendar view of daily net earnings",
+              "True hourly rate tracking",
+              "Compare multiple restaurants",
+              "On-device storage with optional JSON backup"
+            ],
+            "publisher": { "@id": "https://tipcalendar.app/#org" }
+          },
+          {
+            "@type": "FAQPage",
+            "mainEntity": [
+              {
+                "@type": "Question",
+                "name": "What is Tip Calendar?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Tip Calendar is a free mobile app for US restaurant servers and bartenders to record shifts, automatically deduct configured tip-outs, and see net income and true hourly rate. Records are stored on the device."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Does Tip Calendar require an account?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "No. You can record shifts, view history, and export data without creating an account or providing an email."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Is Tip Calendar free?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Yes. Tip Calendar has no subscription. Shift history and reports are not locked behind a paywall."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Where is my tip data stored?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Shift records, income amounts, restaurant settings, and preferences are saved on your phone. This version does not upload shift or income records to Tip Calendar servers. You can export a JSON backup anytime."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Who is Tip Calendar for?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "US restaurant servers, bartenders, and other tipped hospitality workers who earn cash tips, card tips, and hourly wages and need accurate take-home pay after tip-outs."
+                }
+              }
+            ]
+          }
+        ]
+      }
+    </script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <header class="navbar">
+      <a class="logo" href="index.html">
+        <img src="assets/images/app-icon.png" alt="" width="32" height="32" />
+        Tip Calendar
+      </a>
+      <nav class="nav-links" data-nav-links aria-label="Primary">
+        <a href="#features">Features</a>
+        <a href="#how-it-works">How It Works</a>
+        <a href="#privacy">Privacy First</a>
+        <a href="#reviews">Reviews</a>
+        <a class="btn btn-primary btn-nav mobile-cta" href="#download">Get Started Free</a>
+      </nav>
+      <a class="btn btn-primary btn-nav" href="#download">Get Started Free</a>
+      <button class="nav-toggle" type="button" data-nav-toggle aria-expanded="false" aria-label="Open menu">
+        <span></span><span></span><span></span>
+      </button>
+    </header>
+
+    <main id="main">
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="hero-copy">
+          <span class="eyebrow">Now Available for iOS &amp; Android</span>
+          <div>
+            <h1 id="hero-title">Track Every Tip.<br />Know Your Worth.</h1>
+            <p class="lede">
+              Effortless shift recording, automated tip-out deductions, and real-time income analytics tailored for US restaurant servers. Secure, fast, and completely private.
+            </p>
+          </div>
+          <div class="hero-ctas">
+            <a class="btn btn-primary btn-hero" href="#download">Get Started Free</a>
+            <a class="btn btn-ghost btn-hero" href="#showcase">Watch App Demo</a>
+          </div>
+          <div class="badge-row">
+            <div class="badge">
+              <span class="icon icon-16" aria-hidden="true">
+                <img src="assets/icons/shield-check.svg" alt="" width="16" height="16" />
+              </span>
+              100% Device-Only Storage
+            </div>
+            <div class="badge">
+              <span class="icon icon-16" aria-hidden="true">
+                <img src="assets/icons/star-small.svg" alt="" width="16" height="16" />
+              </span>
+              No account required
+            </div>
+          </div>
+        </div>
+
+        <div class="hero-mockup" aria-hidden="true">
+          <div class="phone">
+            <div class="phone-status">
+              <span>9:41</span>
+              <span class="status-icons">
+                <img src="assets/icons/status-bar.svg" alt="" width="52" height="10" />
+              </span>
+            </div>
+            <div class="phone-body">
+              <div>
+                <p class="phone-title">Tip Calendar</p>
+                <div class="phone-month">
+                  <span>August 2025</span>
+                  <span class="month-nav">
+                    <img src="assets/icons/month-nav.svg" alt="" width="40" height="14" />
+                  </span>
+                </div>
+                <div class="week-stats">
+                  <div class="week-stat"><span>This Week</span><strong>$1,240.00</strong></div>
+                  <div class="week-stat"><span>This Month</span><strong>$2,847.50</strong></div>
+                </div>
+                <div class="cal-weekdays">
+                  <span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span>
+                </div>
+                <div class="cal-grid">
+                  <div class="cal-row">
+                    <div class="cal-cell">27</div>
+                    <div class="cal-cell">28</div>
+                    <div class="cal-cell">29</div>
+                    <div class="cal-cell">30</div>
+                    <div class="cal-cell">31</div>
+                    <div class="cal-cell">1<span class="amt">$142</span></div>
+                    <div class="cal-cell">2<span class="amt">$165</span></div>
+                  </div>
+                  <div class="cal-row">
+                    <div class="cal-cell">3<span class="amt">$98</span></div>
+                    <div class="cal-cell">4</div>
+                    <div class="cal-cell">5</div>
+                    <div class="cal-cell">6</div>
+                    <div class="cal-cell">7<span class="amt">$110</span></div>
+                    <div class="cal-cell">8<span class="amt">$155</span></div>
+                    <div class="cal-cell">9<span class="amt">$190</span></div>
+                  </div>
+                  <div class="cal-row">
+                    <div class="cal-cell">10</div>
+                    <div class="cal-cell">11</div>
+                    <div class="cal-cell">12</div>
+                    <div class="cal-cell">13</div>
+                    <div class="cal-cell">14<span class="amt">$125</span></div>
+                    <div class="cal-cell">15<span class="amt">$148</span></div>
+                    <div class="cal-cell">16<span class="amt">$210</span></div>
+                  </div>
+                  <div class="cal-row">
+                    <div class="cal-cell">17</div>
+                    <div class="cal-cell">18</div>
+                    <div class="cal-cell">19</div>
+                    <div class="cal-cell">20</div>
+                    <div class="cal-cell">21<span class="amt">$273</span></div>
+                    <div class="cal-cell">22<span class="amt">$185</span></div>
+                    <div class="cal-cell">23<span class="amt">$220</span></div>
+                  </div>
+                  <div class="cal-row">
+                    <div class="cal-cell today">24</div>
+                    <div class="cal-cell">25</div>
+                    <div class="cal-cell">26</div>
+                    <div class="cal-cell">27</div>
+                    <div class="cal-cell">28</div>
+                    <div class="cal-cell">29<span class="amt">$140</span></div>
+                    <div class="cal-cell">30<span class="amt">$195</span></div>
+                  </div>
+                </div>
+              </div>
+              <div class="phone-tabs">
+                <div class="tab active">
+                  <span class="tab-icon"><img src="assets/icons/tab-calendar-active.svg" alt="" width="18" height="18" /></span>
+                  Calendar
+                </div>
+                <div class="tab">
+                  <span class="tab-icon"><img src="assets/icons/tab-stats.svg" alt="" width="18" height="18" /></span>
+                  Stats
+                </div>
+                <div class="tab">
+                  <span class="tab-icon"><img src="assets/icons/tab-user.svg" alt="" width="18" height="18" /></span>
+                  Me
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <aside class="social-proof" aria-label="Social proof">
+        <div class="stars" aria-hidden="true">
+          <span class="icon icon-18"><img src="assets/icons/star.svg" alt="" width="18" height="18" /></span>
+          <span class="icon icon-18"><img src="assets/icons/star.svg" alt="" width="18" height="18" /></span>
+          <span class="icon icon-18"><img src="assets/icons/star.svg" alt="" width="18" height="18" /></span>
+          <span class="icon icon-18"><img src="assets/icons/star.svg" alt="" width="18" height="18" /></span>
+          <span class="icon icon-18"><img src="assets/icons/star.svg" alt="" width="18" height="18" /></span>
+        </div>
+        <p class="social-copy">10,000+ US Restaurant Servers Trust Tip Calendar</p>
+        <div class="vline" aria-hidden="true"></div>
+        <p class="social-rating">Average rating 4.9/5 stars</p>
+      </aside>
+
+      <section class="section" id="features" aria-labelledby="features-title">
+        <header class="section-header">
+          <p class="kicker">Engineered for the industry</p>
+          <h2 id="features-title">Made by former servers, built for your shifts</h2>
+          <p class="sub">
+            Every detail is designed to solve standard server headaches, from complex tipout math to tracking multiple restaurants.
+          </p>
+        </header>
+        <div class="feature-grid">
+          <article class="card">
+            <div class="icon-tile">
+              <span class="icon icon-24" aria-hidden="true">
+                <img src="assets/icons/timer.svg" alt="" width="24" height="24" />
+              </span>
+            </div>
+            <div>
+              <h3>Quick Record</h3>
+              <p>Log a shift in less than 30 seconds. Input cash, card tips, hours, and wages. We handle the rest.</p>
+            </div>
+          </article>
+          <article class="card">
+            <div class="icon-tile">
+              <span class="icon icon-24" aria-hidden="true">
+                <img src="assets/icons/calendar.svg" alt="" width="24" height="24" />
+              </span>
+            </div>
+            <div>
+              <h3>Smart Calendar</h3>
+              <p>See daily earnings and tips at a glance. Visual color-coding instantly highlights your highest-paying days.</p>
+            </div>
+          </article>
+          <article class="card">
+            <div class="icon-tile">
+              <span class="icon icon-24" aria-hidden="true">
+                <img src="assets/icons/chart-bar.svg" alt="" width="24" height="24" />
+              </span>
+            </div>
+            <div>
+              <h3>Income Stats</h3>
+              <p>Track actual hourly rates, net payouts, tip-out averages, and earnings trends over weeks or months.</p>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="section-sm showcase" id="showcase" aria-labelledby="showcase-title">
+        <div class="mockups-row" aria-hidden="true">
+          <div class="phone">
+            <div class="phone-status">
+              <span>9:41</span>
+              <span class="status-icons">
+                <img src="assets/icons/status-bar.svg" alt="" width="52" height="10" />
+              </span>
+            </div>
+            <div class="phone-body">
+              <div>
+                <div class="phone-nav">
+                  <span class="cancel">Cancel</span>
+                  <span class="date">Thu, August 21</span>
+                  <span class="spacer"></span>
+                </div>
+                <div class="form-stack">
+                  <div>
+                    <p class="label">Restaurant</p>
+                    <div class="field">The Olive Garden</div>
+                  </div>
+                  <div class="row-2">
+                    <div>
+                      <p class="label">Hours Worked</p>
+                      <div class="field outline">6.5</div>
+                    </div>
+                    <div>
+                      <p class="label">Base Pay</p>
+                      <div class="field outline">$15.00/hr</div>
+                    </div>
+                  </div>
+                  <div class="row-2">
+                    <div>
+                      <p class="label">Cash Tips</p>
+                      <div class="field outline">$85.00</div>
+                    </div>
+                    <div>
+                      <p class="label">Card Tips</p>
+                      <div class="field outline">$122.00</div>
+                    </div>
+                  </div>
+                  <div class="breakdown">
+                    <div class="breakdown-row"><span>Total Tips</span><span>$207.00</span></div>
+                    <div class="breakdown-row"><span>Wages</span><span>$97.50</span></div>
+                    <div class="breakdown-row"><span>Tip-out (3%)</span><span>-$6.21</span></div>
+                    <hr />
+                    <div class="breakdown-row net"><span>Net Income</span><span>$298.29</span></div>
+                  </div>
+                </div>
+              </div>
+              <div class="phone-save"><div class="save-btn">Save Shift</div></div>
+            </div>
+          </div>
+
+          <div class="phone">
+            <div class="phone-status">
+              <span>9:41</span>
+              <span class="status-icons">
+                <img src="assets/icons/status-bar.svg" alt="" width="52" height="10" />
+              </span>
+            </div>
+            <div class="phone-body">
+              <div>
+                <p class="phone-title">Stats</p>
+                <div class="seg"><span class="on">Week</span><span>Month</span></div>
+                <div class="stat-hero">
+                  <span>Weekly Net Income</span>
+                  <strong>$1,240.00</strong>
+                </div>
+                <div class="mini-stats">
+                  <div class="mini-stat"><span>Avg Hourly</span><strong>$24.10/hr</strong></div>
+                  <div class="mini-stat"><span>Hours Worked</span><strong>51.5 hrs</strong></div>
+                </div>
+                <div class="chart-wrap">
+                  <h4>Daily Earnings</h4>
+                  <div class="chart">
+                    <div class="bars">
+                      <div class="bar" style="height: 15.6px"></div>
+                      <div class="bar" style="height: 23.4px"></div>
+                      <div class="bar" style="height: 45.5px"></div>
+                      <div class="bar" style="height: 54.6px"></div>
+                      <div class="bar" style="height: 13px"></div>
+                      <div class="bar" style="height: 18.2px"></div>
+                      <div class="bar on" style="height: 28.6px"></div>
+                    </div>
+                    <div class="bar-labels">
+                      <span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="phone-tabs">
+                <div class="tab">
+                  <span class="tab-icon"><img src="assets/icons/tab-calendar.svg" alt="" width="18" height="18" /></span>
+                  Calendar
+                </div>
+                <div class="tab active">
+                  <span class="tab-icon"><img src="assets/icons/tab-stats-active.svg" alt="" width="18" height="18" /></span>
+                  Stats
+                </div>
+                <div class="tab">
+                  <span class="tab-icon"><img src="assets/icons/tab-user.svg" alt="" width="18" height="18" /></span>
+                  Me
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="showcase-copy">
+          <header class="section-header">
+            <p class="kicker">No guesswork, just facts</p>
+            <h2 id="showcase-title">Real-time shift breakdowns and beautiful analytics</h2>
+            <p class="sub">
+              Our smart engine breaks down precisely how your hourly rate scales and maps it against shift metrics.
+            </p>
+          </header>
+          <ol class="perk-list">
+            <li class="perk">
+              <span class="num">1</span>
+              <div>
+                <h3>Custom Tip-out Calculation</h3>
+                <p>Deduct support staff tip-outs automatically based on your customized restaurant configuration rates.</p>
+              </div>
+            </li>
+            <li class="perk">
+              <span class="num">2</span>
+              <div>
+                <h3>True Hourly Rate Tracking</h3>
+                <p>Combines base hourly wages + credit card tips + cash tips to display your actual shift rate.</p>
+              </div>
+            </li>
+            <li class="perk">
+              <span class="num">3</span>
+              <div>
+                <h3>Compare Multiple Venues</h3>
+                <p>Work at more than one spot? Filter stats by restaurant to see which place pays the best.</p>
+              </div>
+            </li>
+          </ol>
+        </div>
+      </section>
+
+      <section class="section how" id="how-it-works" aria-labelledby="how-title">
+        <header class="section-header">
+          <p class="kicker">Zero Learning Curve</p>
+          <h2 id="how-title">From clock-out to insight in three steps</h2>
+        </header>
+        <ol class="steps-row">
+          <li class="step">
+            <p class="step-num">01</p>
+            <h3>Add Restaurant</h3>
+            <p>Input your support staff tipout structure (e.g. 3% of sales or card tips) and your base hourly wage.</p>
+          </li>
+          <li class="step">
+            <p class="step-num">02</p>
+            <h3>Record Shift</h3>
+            <p>At the end of your shift, type in your hours worked, card tips, and cash tips. Takes 30 seconds.</p>
+          </li>
+          <li class="step">
+            <p class="step-num">03</p>
+            <h3>See Insights</h3>
+            <p>Watch your monthly calendars populate with clear green net earnings. Instantly unlock deep trend reports.</p>
+          </li>
+        </ol>
+      </section>
+
+      <section class="section-sm privacy" id="privacy" aria-labelledby="privacy-title">
+        <div class="privacy-copy">
+          <header class="section-header">
+            <p class="kicker">Your Earnings, Nobody Else's</p>
+            <h2 id="privacy-title">No ads. No subscriptions. Your data stays on your phone.</h2>
+          </header>
+          <p class="privacy-lede">
+            We believe you deserve financial privacy. Tip Calendar stores all your records locally on your device. We do not transmit or sell your financial data, we display zero intrusive ads, and there are no monthly subscriptions. Just a clean, utility-grade tool.
+          </p>
+          <ul class="checks">
+            <li class="check">
+              <span class="icon icon-16" aria-hidden="true">
+                <img src="assets/icons/check-circle.svg" alt="" width="16" height="16" />
+              </span>
+              100% Offline Access — logs shift anytime, anywhere
+            </li>
+            <li class="check">
+              <span class="icon icon-16" aria-hidden="true">
+                <img src="assets/icons/check-circle.svg" alt="" width="16" height="16" />
+              </span>
+              Local Encrypted Backups — export to JSON anytime
+            </li>
+            <li class="check">
+              <span class="icon icon-16" aria-hidden="true">
+                <img src="assets/icons/check-circle.svg" alt="" width="16" height="16" />
+              </span>
+              Completely Anonymous — no registration or email needed
+            </li>
+          </ul>
+        </div>
+        <div class="privacy-card-wrap">
+          <div class="privacy-card">
+            <div class="lock-ring">
+              <span class="icon icon-40" aria-hidden="true">
+                <img src="assets/icons/lock.svg" alt="" width="40" height="40" />
+              </span>
+            </div>
+            <h3>Secure Device Storage</h3>
+            <p>Zero Cloud Databases. Zero tracking APIs. Your wallet is your business.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section reviews" id="reviews" aria-labelledby="reviews-title">
+        <header class="section-header">
+          <p class="kicker">Loved by the community</p>
+          <h2 id="reviews-title">What real servers are saying</h2>
+        </header>
+        <div class="reviews-grid">
+          <figure class="card">
+            <blockquote>
+              “The visual calendar has completely changed how I look at my schedules. I realized my Tuesday morning shifts were yielding higher tips than Friday lunches. Insanely clear.”
+            </blockquote>
+            <figcaption class="cite">
+              <strong>Elena R.</strong>
+              <span>Fine Dining Server, Chicago</span>
+            </figcaption>
+          </figure>
+          <figure class="card">
+            <blockquote>
+              “I've tried 4 tip apps and they all either spam me with ads or lock historical reports behind subscription tiers. This app has zero fluff and just works perfectly.”
+            </blockquote>
+            <figcaption class="cite">
+              <strong>Marcus T.</strong>
+              <span>Bartender, Austin</span>
+            </figcaption>
+          </figure>
+          <figure class="card">
+            <blockquote>
+              “Auto tip-out deductions were a lifesaver. No more manually computing what I owe support staff at clock-out. I log it on the walk to my car, and I'm done.”
+            </blockquote>
+            <figcaption class="cite">
+              <strong>Sarah L.</strong>
+              <span>Casual Bistro Server, Orlando</span>
+            </figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <section class="final-cta" id="download" aria-labelledby="cta-title">
+        <div>
+          <h2 class="h2" id="cta-title">Start tracking your tips today</h2>
+          <p>
+            Take control of your hard-earned wages. Download Tip Calendar now and enjoy absolute clarity and safety over your records.
+          </p>
+        </div>
+        <div class="store-row">
+          <a class="btn btn-store" href="#download" aria-label="Download on the App Store">
+            <span class="icon icon-20" aria-hidden="true">
+              <img src="assets/icons/apple.svg" alt="" width="20" height="20" />
+            </span>
+            Download on App Store
+          </a>
+          <a class="btn btn-store" href="#download" aria-label="Get it on Google Play">
+            <span class="icon icon-20" aria-hidden="true">
+              <img src="assets/icons/google-play.svg" alt="" width="20" height="20" />
+            </span>
+            Get it on Google Play
+          </a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="footer-top">
+        <div>
+          <a class="logo logo-sm" href="index.html">
+            <img src="assets/images/app-icon.png" alt="" width="24" height="24" />
+            Tip Calendar
+          </a>
+          <p class="footer-tag">Track every shift, know your hourly wage.</p>
+        </div>
+        <nav class="footer-links" aria-label="Footer">
+          <a href="#features">Features</a>
+          <a href="privacy.html">Privacy</a>
+          <a href="support.html">Support</a>
+          <a href="support.html">Contact</a>
+        </nav>
+      </div>
+      <div class="footer-bottom">
+        <p>© 2026 Tip Calendar App. All rights reserved. Built with privacy-first storage parameters.</p>
+        <div class="legal-links">
+          <a href="terms.html">Terms of Service</a>
+          <a href="privacy.html">Privacy Policy</a>
+        </div>
+      </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+  </body>
+</html>

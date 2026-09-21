@@ -1,0 +1,71 @@
+# Tip Calendar
+
+> Tip Calendar is a free, privacy-first mobile app for US restaurant servers, bartenders, and tipped hospitality workers to record shifts, calculate tip-outs, and see true hourly income. Records stay on the device. No account is required.
+
+Tip Calendar is a tip tracker and server income tracker for United States restaurant staff who earn cash tips, credit-card tips, and hourly wages.
+
+## Product facts
+
+- Name: Tip Calendar
+- Category: personal finance / income tracking for tipped workers
+- Platforms: iOS and Android
+- Price: free. No subscription required.
+- Account: none. No email or registration.
+- Storage: local, on-device. Shift amounts, restaurant names, and dates are not uploaded to Tip Calendar servers.
+- Primary audience: US restaurant servers, bartenders, bussers, and other tipped staff
+- Geography: United States (USD, US restaurant tip-out workflows)
+
+## What it does
+
+1. Add a restaurant with hourly wage and tip-out rules (for example 3% of sales or card tips).
+2. Record a shift in about 30 seconds: hours, cash tips, card tips.
+3. See net income on a monthly calendar and in weekly/monthly stats.
+
+## Core features
+
+- Quick Record: log cash tips, card tips, hours, and wages in under 30 seconds.
+- Smart Calendar: view daily net earnings at a glance.
+- Income Stats: true hourly rate, net payouts, tip-out averages, and trends.
+- Custom tip-out calculation from each restaurant's configuration.
+- Multi-venue comparison so servers who work two jobs can see which place pays better.
+- Local JSON backup/export.
+- Works offline.
+
+## Who it is for
+
+US restaurant servers and bartenders who want to know take-home pay after tip-outs — especially in cities and full-service restaurants where tip-share math is complex. Typical users include fine dining servers, casual bistro servers, and bartenders.
+
+## Privacy
+
+- No account or email is required.
+- Shift records, income amounts, restaurant settings, and preferences are saved on the device.
+- This version does not upload shift or income records to Tip Calendar servers.
+- CSV and JSON export happen only when the user chooses to export.
+- Anonymous usage counts and crash reports may be sent for product reliability; they are not tied to an account and do not include shift amounts, restaurant names, or dates.
+
+## FAQ
+
+### What is Tip Calendar?
+Tip Calendar is a mobile tip and income tracker for US restaurant servers. It records shifts, deducts configured tip-outs, and shows net pay and true hourly rate.
+
+### Does Tip Calendar require an account?
+No. You can record shifts, view history, and export data without creating an account.
+
+### Is Tip Calendar free?
+Yes. There is no subscription paywall for history or reports.
+
+### Where is my data stored?
+On your phone. Uninstalling the app or clearing local storage can remove records, so export a JSON backup if you want a copy.
+
+### Does it work for multiple restaurants?
+Yes. You can configure each venue's wage and tip-out rules and filter stats by restaurant.
+
+### Is it only for the United States?
+The product is designed around US restaurant workflows: cash vs card tips, hourly wages, and support-staff tip-outs in USD.
+
+## Links
+
+- Home: https://tipcalendar.app/
+- Privacy: https://tipcalendar.app/privacy.html
+- Terms: https://tipcalendar.app/terms.html
+- Support: https://tipcalendar.app/support.html

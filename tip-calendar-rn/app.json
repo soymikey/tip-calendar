@@ -11,7 +11,7 @@
       "icon": "./assets/images/icon.png",
       "bundleIdentifier": "app.tipcalendar",
       "googleServicesFile": "./GoogleService-Info.plist",
-      "buildNumber": "1",
+      "buildNumber": "2",
       "supportsTablet": false,
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
@@ -127,9 +127,9 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "b7eceed2-b295-467f-a272-f6eb3b8b9d33"
+        "projectId": "ba80171a-58af-480b-add5-922c661cb759"
       }
     },
-    "owner": "soymikey-zhengs-team"
+    "owner": "contractanalyzerai"
   }
 }
