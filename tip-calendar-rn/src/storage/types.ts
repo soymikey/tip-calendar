@@ -21,6 +21,7 @@ export const defaultPreferences: Preferences = {
   currencySymbol: "$",
   timeFormat: "12h",
   defaultRestaurantId: null,
+  analyticsConsent: null,
 }
 
 export const emptyState: AppState = {

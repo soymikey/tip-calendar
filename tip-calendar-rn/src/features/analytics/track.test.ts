@@ -4,7 +4,7 @@ import { isExpoGo } from "./expoRuntime"
 
 import {
   AnalyticsEvent,
-  enableNativeAnalytics,
+  configureNativeAnalytics,
   onboardingCompletedParams,
   resetAnalyticsReporter,
   setAnalyticsReporter,
@@ -67,7 +67,7 @@ describe("AnalyticsEvent names", () => {
   })
 })
 
-describe("enableNativeAnalytics", () => {
+describe("configureNativeAnalytics", () => {
   const crashlytics = require("@react-native-firebase/crashlytics") as {
     default: () => unknown
   }
@@ -98,7 +98,7 @@ describe("enableNativeAnalytics", () => {
     crashlytics.default = factory
     analytics.default = factory
 
-    await enableNativeAnalytics()
+    await configureNativeAnalytics(true)
 
     expect(factory).not.toHaveBeenCalled()
   })
@@ -110,7 +110,7 @@ describe("enableNativeAnalytics", () => {
     const reporter = jest.fn().mockResolvedValue(undefined)
     setAnalyticsReporter(reporter)
 
-    await enableNativeAnalytics()
+    await configureNativeAnalytics(true)
     await track(AnalyticsEvent.shiftSaved)
 
     expect(reporter).toHaveBeenCalledWith("shift_saved", undefined)
@@ -123,9 +123,36 @@ describe("enableNativeAnalytics", () => {
     const reporter = jest.fn().mockResolvedValue(undefined)
     setAnalyticsReporter(reporter)
 
-    await enableNativeAnalytics()
+    await configureNativeAnalytics(true)
     await track(AnalyticsEvent.shiftSaved)
 
     expect(reporter).toHaveBeenCalledWith("shift_saved", undefined)
+  })
+
+  it("keeps event reporting disabled when consent is not granted", async () => {
+    const setAnalyticsCollectionEnabled = jest.fn().mockResolvedValue(undefined)
+    const setCrashlyticsCollectionEnabled = jest.fn().mockResolvedValue(undefined)
+    analytics.default = () => ({ logEvent: jest.fn(), setAnalyticsCollectionEnabled })
+    crashlytics.default = () => ({ setCrashlyticsCollectionEnabled })
+
+    await configureNativeAnalytics(false)
+
+    expect(setAnalyticsCollectionEnabled).toHaveBeenCalledWith(false)
+    expect(setCrashlyticsCollectionEnabled).toHaveBeenCalledWith(false)
+  })
+
+  it("enables event reporting only after consent", async () => {
+    const logEvent = jest.fn().mockResolvedValue(undefined)
+    const setAnalyticsCollectionEnabled = jest.fn().mockResolvedValue(undefined)
+    const setCrashlyticsCollectionEnabled = jest.fn().mockResolvedValue(undefined)
+    analytics.default = () => ({ logEvent, setAnalyticsCollectionEnabled })
+    crashlytics.default = () => ({ setCrashlyticsCollectionEnabled })
+
+    await configureNativeAnalytics(true)
+    await track(AnalyticsEvent.shiftSaved)
+
+    expect(setAnalyticsCollectionEnabled).toHaveBeenCalledWith(true)
+    expect(setCrashlyticsCollectionEnabled).toHaveBeenCalledWith(true)
+    expect(logEvent).toHaveBeenCalledWith("shift_saved", undefined)
   })
 })

@@ -18,6 +18,7 @@ export type Preferences = {
   currencySymbol: string
   timeFormat: "12h" | "24h"
   defaultRestaurantId: string | null
+  analyticsConsent: boolean | null
 }
 
 export type Restaurant = {

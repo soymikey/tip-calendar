@@ -65,7 +65,7 @@ The product is designed around US restaurant workflows: cash vs card tips, hourl
 
 ## Links
 
-- Home: https://tipcalendar.app/
-- Privacy: https://tipcalendar.app/privacy.html
-- Terms: https://tipcalendar.app/terms.html
-- Support: https://tipcalendar.app/support.html
+- Home: https://tip-calendar.vercel.app/
+- Privacy: https://tip-calendar.vercel.app/privacy.html
+- Terms: https://tip-calendar.vercel.app/terms.html
+- Support: https://tip-calendar.vercel.app/support.html

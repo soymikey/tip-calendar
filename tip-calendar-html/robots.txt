@@ -19,4 +19,4 @@ Allow: /
 User-agent: Applebot-Extended
 Allow: /
 
-Sitemap: https://tipcalendar.app/sitemap.xml
+Sitemap: https://tip-calendar.vercel.app/sitemap.xml

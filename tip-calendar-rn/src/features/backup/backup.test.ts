@@ -182,6 +182,7 @@ describe("clearedAppState", () => {
         currencySymbol: "€",
         timeFormat: "24h" as const,
         defaultRestaurantId: restaurant.id,
+        analyticsConsent: false,
       },
     }
     expect(filled.restaurants).not.toEqual([])

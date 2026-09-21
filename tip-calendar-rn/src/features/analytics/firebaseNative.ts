@@ -15,7 +15,19 @@ export async function initFirebaseNative(): Promise<void> {
   }
   const analytics = require("@react-native-firebase/analytics").default as () => {
     logEvent(event: AnalyticsEventName, eventParams?: AnalyticsParams): Promise<void>
+    setAnalyticsCollectionEnabled(enabled: boolean): Promise<void>
   }
-  analytics()
-  await crashlytics().setCrashlyticsCollectionEnabled(true)
+  await analytics().setAnalyticsCollectionEnabled(false)
+  await crashlytics().setCrashlyticsCollectionEnabled(false)
+}
+
+export async function setFirebaseCollectionEnabled(enabled: boolean): Promise<void> {
+  const crashlytics = require("@react-native-firebase/crashlytics").default as () => {
+    setCrashlyticsCollectionEnabled(value: boolean): Promise<void>
+  }
+  const analytics = require("@react-native-firebase/analytics").default as () => {
+    setAnalyticsCollectionEnabled(value: boolean): Promise<void>
+  }
+  await analytics().setAnalyticsCollectionEnabled(enabled)
+  await crashlytics().setCrashlyticsCollectionEnabled(enabled)
 }

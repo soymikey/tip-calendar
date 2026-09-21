@@ -2,6 +2,8 @@ import { ScrollView, Text, View } from "react-native"
 import { SafeAreaView } from "react-native-safe-area-context"
 
 import { StackHeader } from "@/components/StackHeader"
+import { ExternalLink } from "@/components/external-link"
+import { SettingsGroup } from "@/components/SettingsRow"
 import { colors } from "@/theme/colors"
 
 const PRIVACY_SECTIONS = [
@@ -18,8 +20,8 @@ const PRIVACY_SECTIONS = [
     body: "This version does not upload your shift or income records to our servers. We do not sell your data or use your income data for advertising.",
   },
   {
-    title: "Anonymous usage and crash reports",
-    body: "This version sends anonymous usage counts (for example app opens and shift saves) and crash reports to an analytics service. It does not upload shift amounts, restaurant names, or dates. This data is not used for advertising and is not tied to an account.",
+    title: "Optional usage and crash reports",
+    body: "If you choose Allow, this version sends usage counts, an app-install identifier, approximate location, device details, and crash reports to Google Firebase. It does not upload shift amounts, restaurant names, dates, or notes. This data is not used for advertising or tied to an account. You can turn collection off under Preferences.",
   },
   {
     title: "Export is your choice",
@@ -51,6 +53,23 @@ export default function AboutPrivacyScreen() {
             </View>
           ))}
         </View>
+        <SettingsGroup>
+          <ExternalLink
+            href="https://tip-calendar.vercel.app/privacy.html"
+            className="min-h-[52px] justify-center px-4 text-[17px] text-[#0066CC]">
+            Privacy Policy
+          </ExternalLink>
+          <ExternalLink
+            href="https://tip-calendar.vercel.app/terms.html"
+            className="min-h-[52px] justify-center px-4 text-[17px] text-[#0066CC]">
+            Terms of Service
+          </ExternalLink>
+          <ExternalLink
+            href="https://tip-calendar.vercel.app/support.html"
+            className="min-h-[52px] justify-center px-4 text-[17px] text-[#0066CC]">
+            Support
+          </ExternalLink>
+        </SettingsGroup>
       </ScrollView>
     </SafeAreaView>
   )

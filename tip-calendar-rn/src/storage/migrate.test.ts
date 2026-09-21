@@ -25,6 +25,19 @@ const v2 = {
 }
 
 describe("parsePersistedState", () => {
+  it("defaults analytics consent to undecided for existing installs", () => {
+    const result = parsePersistedState(
+      {
+        schemaVersion: 2,
+        restaurants: [],
+        shifts: [],
+        preferences: {},
+      },
+      "load",
+    )
+
+    expect(result.preferences.analyticsConsent).toBeNull()
+  })
   it("returns schemaVersion 2 documents with preference defaults filled", () => {
     const { defaultRestaurantId: _ignored, ...preferences } = v2.preferences
     const next = parsePersistedState({ ...v2, preferences }, "load")

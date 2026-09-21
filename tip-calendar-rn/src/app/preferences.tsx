@@ -1,4 +1,4 @@
-import { ScrollView, Text, View } from "react-native"
+import { ScrollView, Switch, Text, View } from "react-native"
 import { SafeAreaView } from "react-native-safe-area-context"
 import { SymbolView } from "expo-symbols"
 
@@ -50,6 +50,13 @@ export default function PreferencesScreen() {
     }))
   }
 
+  async function setAnalyticsConsent(value: boolean) {
+    await updateState((current) => ({
+      ...current,
+      preferences: { ...current.preferences, analyticsConsent: value },
+    }))
+  }
+
   return (
     <SafeAreaView className="flex-1 bg-white" edges={["top"]}>
       <StackHeader title="Preferences" />
@@ -92,6 +99,24 @@ export default function PreferencesScreen() {
               onPress={() => {
                 void setTimeFormat("24h")
               }}
+            />
+          </SettingsGroup>
+        </View>
+
+        <View className="gap-2">
+          <Text className="px-1 text-[13px] font-semibold uppercase text-[#8E8E93]">Privacy</Text>
+          <SettingsGroup>
+            <SettingsRow
+              title="Share analytics"
+              subtitle="Usage counts and crash reports only"
+              showChevron={false}
+              trailing={
+                <Switch
+                  accessibilityLabel="Share analytics"
+                  value={state.preferences.analyticsConsent === true}
+                  onValueChange={(value) => void setAnalyticsConsent(value)}
+                />
+              }
             />
           </SettingsGroup>
         </View>

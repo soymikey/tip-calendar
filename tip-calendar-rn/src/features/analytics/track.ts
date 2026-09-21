@@ -53,7 +53,7 @@ export async function track(name: AnalyticsEventName, params?: AnalyticsParams):
   }
 }
 
-export async function enableNativeAnalytics(): Promise<void> {
+export async function configureNativeAnalytics(enabled: boolean): Promise<void> {
   if (isExpoGo()) {
     if (__DEV__) {
       console.warn("Firebase skipped (Expo Go or native module missing)")
@@ -62,7 +62,11 @@ export async function enableNativeAnalytics(): Promise<void> {
   }
   try {
     const native = require("./firebaseNative") as typeof import("./firebaseNative")
-    await native.initFirebaseNative()
+    await native.setFirebaseCollectionEnabled(enabled)
+    if (!enabled) {
+      resetAnalyticsReporter()
+      return
+    }
     setAnalyticsReporter(async (name, params) => {
       try {
         await native.logFirebaseEvent(name, params)

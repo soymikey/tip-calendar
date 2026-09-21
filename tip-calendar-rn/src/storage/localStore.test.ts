@@ -15,6 +15,7 @@ describe("localStore", () => {
         currencySymbol: "$",
         timeFormat: "12h",
         defaultRestaurantId: null,
+        analyticsConsent: null,
       },
     })
 
@@ -28,6 +29,7 @@ describe("localStore", () => {
         currencySymbol: "$",
         timeFormat: "12h",
         defaultRestaurantId: null,
+        analyticsConsent: null,
       },
     })
 
